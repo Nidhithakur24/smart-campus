@@ -1,1103 +1,725 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#1a56db">
-<title>Smart Campus</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#1d4ed8"/>
+<title>Smart Campus RMS</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
-/* ═══════════════════════════════════════
-   TOKENS & RESET
-═══════════════════════════════════════ */
+/* ─────────────────────────────────────
+   DESIGN TOKENS
+───────────────────────────────────── */
 :root {
-  --blue: #1a56db;
-  --blue-dark: #1340aa;
-  --blue-mid: #2563eb;
-  --blue-light: #eff6ff;
-  --blue-soft: #dbeafe;
-  --green: #059669;
-  --green-bg: #ecfdf5;
-  --amber: #d97706;
-  --amber-bg: #fffbeb;
-  --red: #dc2626;
-  --red-bg: #fef2f2;
-  --text: #111827;
-  --text2: #374151;
-  --muted: #9ca3af;
-  --border: #e5e7eb;
-  --surface: #ffffff;
-  --bg: #f9fafb;
-  --bg2: #f3f4f6;
-  --radius-sm: 10px;
-  --radius: 16px;
-  --radius-lg: 22px;
-  --shadow: 0 1px 8px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.04);
-  --shadow-up: 0 -4px 24px rgba(0,0,0,0.08);
-  --nav-h: 68px;
-  --header-h: 60px;
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --p:         #1d4ed8;
+  --p-dark:    #1e3a8a;
+  --p-mid:     #2563eb;
+  --p-light:   #eff6ff;
+  --p-soft:    #dbeafe;
+  --green:     #16a34a;
+  --green-bg:  #f0fdf4;
+  --amber:     #d97706;
+  --amber-bg:  #fffbeb;
+  --red:       #dc2626;
+  --red-bg:    #fef2f2;
+  --ink:       #0f172a;
+  --ink2:      #334155;
+  --muted:     #94a3b8;
+  --border:    #e2e8f0;
+  --surface:   #ffffff;
+  --bg:        #f8fafc;
+  --bg2:       #f1f5f9;
+  --r:         14px;
+  --r-lg:      20px;
+  --sh:        0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06);
+  --sh-lg:     0 8px 32px rgba(0,0,0,.12);
+  --nav-h:     66px;
+  --hdr-h:     60px;
+  --sidebar-w: 256px;
+  --sb: env(safe-area-inset-bottom,0px);
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html, body { height: 100%; overflow: hidden; }
-body {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  font-size: 15px;
-  line-height: 1.5;
-  overscroll-behavior: none;
+/* ─────────────────────────────────────
+   RESET
+───────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{height:100%;-webkit-text-size-adjust:100%}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.55;height:100%;overflow:hidden}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+img,svg{display:block}
+
+/* ─────────────────────────────────────
+   LAYOUT
+───────────────────────────────────── */
+#root{display:flex;height:100vh;width:100%;overflow:hidden}
+#sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);height:100vh;background:#0f172a;display:flex;flex-direction:column;overflow:hidden;transition:transform .3s ease;z-index:200}
+#main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;min-width:0}
+#content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
+#content::-webkit-scrollbar{width:4px}
+#content::-webkit-scrollbar-track{background:transparent}
+#content::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+
+/* Mobile: hide sidebar, show bottom-nav */
+@media(max-width:899px){
+  #sidebar{position:fixed;top:0;left:0;transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0)}
+  #overlay{display:block}
+  #bottom-nav{display:flex}
+  #content{padding-bottom:calc(var(--nav-h) + var(--sb))}
 }
-/* On desktop body scrolling re-enabled via media query */
-
-/* ═══════════════════════════════════════
-   APP SHELL — MOBILE + DESKTOP
-═══════════════════════════════════════ */
-#app {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
-  background: var(--surface);
-  position: relative;
-  overflow: hidden;
-  flex: 1;
-}
-
-/* ── DESKTOP (>=900px) ── */
-@media (min-width: 900px) {
-  html, body { overflow: auto; height: 100%; overscroll-behavior: auto; }
-  body { background: var(--bg); display: block; }
-  #desktop-layout { display: flex !important; min-height: 100vh; width: 100%; }
-  #desktop-sidebar {
-    display: flex !important; width: 260px; min-width: 260px;
-    flex-direction: column; background: #0f172a;
-    min-height: 100vh; position: sticky; top: 0; height: 100vh; overflow: hidden;
-  }
-  #app { flex: 1; height: 100vh; overflow: hidden; border-radius: 0; box-shadow: none; }
-  #bottom-nav { display: none !important; }
-  .page-scroll { padding-bottom: 24px !important; height: calc(100vh - var(--header-h)); }
-  .pad { padding: 24px 28px; }
-  .pad-x { padding-left: 28px; padding-right: 28px; }
-  .sec-heading { padding: 20px 28px 10px; }
-  .page-title { font-size: 1.6rem; }
-  .app-header { padding: 0 28px; }
-  .header-title { font-size: 1.15rem; }
-  #login-screen { flex-direction: row !important; justify-content: stretch !important; align-items: stretch !important; }
-  .login-hero { flex: 1; justify-content: center; padding: 60px 48px; }
-  .login-hero h1 { font-size: 2.2rem; }
-  .login-sheet { width: 440px; min-width: 440px; border-radius: 0 !important; padding: 48px 44px !important; display: flex; flex-direction: column; justify-content: center; overflow-y: auto; box-shadow: -8px 0 40px rgba(0,0,0,0.12); }
-  #faculty-res-list { display: grid !important; grid-template-columns: 1fr 1fr; gap: 16px; }
-  #faculty-res-list .res-card { margin-bottom: 0; }
-  #approvals-list { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  #approvals-list .card { margin-bottom: 0 !important; }
-  #my-bookings-list { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  #my-bookings-list .card { margin-bottom: 0 !important; }
-  .desktop-2col { display: grid !important; grid-template-columns: 1fr 1fr; gap: 20px; }
-  .desktop-4col { grid-template-columns: repeat(4,1fr) !important; }
-  .prf-banner { padding: 40px 32px 28px; }
-  .prf-avatar { width: 96px; height: 96px; font-size: 2.4rem; border-radius: 28px; }
-  #toast { bottom: 24px; }
-
-  /* 4-col stat grids */
-  #dash-stat-grid, #rpt-stat-grid, #my-stat-grid {
-    grid-template-columns: repeat(4,1fr) !important;
-  }
-
-  /* Dashboard two-col: recent bookings + resources side by side */
-  #dash-two-col {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    padding: 0 28px;
-    margin-top: 4px;
-  }
-
-  /* Reports two-col */
-  #rpt-two-col {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    padding: 0 28px;
-    margin-top: 4px;
-    margin-bottom: 8px;
-  }
-
-  /* Resource management two-col */
-  #res-two-col {
-    display: grid;
-    grid-template-columns: 380px 1fr;
-    gap: 20px;
-    padding: 0 28px;
-    margin-top: 4px;
-  }
-
-  /* Booking form two-col */
-  #book-two-col {
-    display: grid;
-    grid-template-columns: 1fr 380px;
-    gap: 20px;
-    padding: 0 28px;
-    margin-top: 4px;
-  }
+@media(min-width:900px){
+  #overlay{display:none!important}
+  #bottom-nav{display:none!important}
+  body{overflow:hidden}
 }
 
-/* ═══════════════════════════════════════
-   SCREENS & TRANSITIONS
-═══════════════════════════════════════ */
-.screen { display: none; flex-direction: column; height: 100%; }
-.screen.active { display: flex; }
+/* Overlay */
+#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199;backdrop-filter:blur(2px)}
 
-/* ═══════════════════════════════════════
-   LOGIN SCREEN
-═══════════════════════════════════════ */
-#login-screen {
-  background: linear-gradient(160deg, #1a56db 0%, #1e40af 45%, #1e3a8a 100%);
-  justify-content: flex-end;
-  overflow: hidden;
-  position: relative;
-}
+/* ─────────────────────────────────────
+   SCREENS
+───────────────────────────────────── */
+.screen{display:none;position:absolute;inset:0;flex-direction:column}
+.screen.on{display:flex}
 
-.login-bg-circles {
-  position: absolute; inset: 0; pointer-events: none; overflow: hidden;
-}
-.login-bg-circles::before {
-  content: '';
-  position: absolute;
-  width: 320px; height: 320px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.06);
-  top: -80px; right: -80px;
-}
-.login-bg-circles::after {
-  content: '';
-  position: absolute;
-  width: 200px; height: 200px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.04);
-  top: 160px; left: -60px;
-}
+/* ─────────────────────────────────────
+   LOGIN
+───────────────────────────────────── */
+#s-login{background:linear-gradient(145deg,#1d4ed8 0%,#1e40af 50%,#1e3a8a 100%);overflow:hidden}
+.login-orb{position:absolute;border-radius:50%;pointer-events:none}
+.login-orb.a{width:500px;height:500px;top:-200px;right:-150px;background:radial-gradient(circle,rgba(255,255,255,.08),transparent 70%)}
+.login-orb.b{width:300px;height:300px;bottom:-80px;left:-80px;background:radial-gradient(circle,rgba(99,179,255,.12),transparent 70%)}
+.login-orb.c{width:200px;height:200px;top:30%;left:10%;background:radial-gradient(circle,rgba(255,255,255,.04),transparent 70%)}
 
-.login-hero {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  padding: 40px 28px 24px;
-  position: relative; z-index: 1;
-}
-.login-icon-wrap {
-  width: 80px; height: 80px;
-  background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(10px);
-  border-radius: 24px;
-  border: 1.5px solid rgba(255,255,255,0.25);
-  display: flex; align-items: center; justify-content: center;
-  margin-bottom: 20px;
-  animation: popIn 0.6s cubic-bezier(.34,1.56,.64,1) both;
-}
-@keyframes popIn { from { opacity:0; transform: scale(0.7); } to { opacity:1; transform: scale(1); } }
-.login-hero h1 {
-  font-size: 1.6rem; font-weight: 800; color: white;
-  text-align: center; letter-spacing: -0.5px;
-  animation: fadeUp 0.5s 0.15s ease both;
-}
-.login-hero p {
-  color: rgba(255,255,255,0.65); font-size: 0.85rem;
-  text-align: center; margin-top: 6px;
-  animation: fadeUp 0.5s 0.25s ease both;
-}
-@keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+/* Mobile: stacked */
+.login-hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 32px 24px;position:relative;z-index:1;text-align:center}
+.login-logo-box{width:76px;height:76px;border-radius:22px;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.25);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;animation:popIn .6s cubic-bezier(.34,1.56,.64,1) both}
+.login-hero h1{font-size:1.7rem;font-weight:800;color:#fff;letter-spacing:-.5px;animation:slideUp .5s .15s ease both}
+.login-hero p{color:rgba(255,255,255,.6);font-size:.85rem;margin-top:6px;animation:slideUp .5s .25s ease both}
+.login-features{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;justify-content:center;animation:slideUp .5s .35s ease both}
+.login-feat{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:5px 12px;font-size:.72rem;font-weight:600;color:rgba(255,255,255,.8)}
 
-.login-sheet {
-  background: var(--surface);
-  border-radius: 28px 28px 0 0;
-  padding: 28px 24px calc(28px + var(--safe-bottom));
-  position: relative; z-index: 1;
-  animation: slideUp 0.5s 0.1s cubic-bezier(.4,0,.2,1) both;
-}
-@keyframes slideUp { from { transform: translateY(60px); opacity:0; } to { transform: translateY(0); opacity:1; } }
-.login-sheet h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
-.login-sheet p { font-size: 0.82rem; color: var(--muted); margin-bottom: 22px; }
+.login-card{background:var(--surface);border-radius:28px 28px 0 0;padding:28px 24px calc(28px + var(--sb));position:relative;z-index:1;animation:slideUp .45s .1s ease both;overflow-y:auto}
+.login-card h2{font-size:1.1rem;font-weight:800;color:var(--ink);margin-bottom:3px}
+.login-card>p{font-size:.82rem;color:var(--muted);margin-bottom:20px}
 
-.role-switch {
-  display: flex; background: var(--bg2);
-  border-radius: 12px; padding: 4px;
-  margin-bottom: 22px; gap: 4px;
-}
-.role-btn {
-  flex: 1; padding: 10px 0;
-  background: transparent; border: none;
-  border-radius: 9px;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.85rem; font-weight: 600;
-  color: var(--muted); cursor: pointer;
-  transition: all 0.22s ease;
-}
-.role-btn.active {
-  background: var(--surface);
-  color: var(--blue);
-  box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+/* Desktop: side-by-side */
+@media(min-width:900px){
+  #s-login{flex-direction:row!important;align-items:stretch!important;justify-content:stretch!important;position:relative}
+  .login-hero{flex:1;padding:60px 56px;justify-content:center;border-radius:0}
+  .login-hero h1{font-size:2.6rem}
+  .login-hero p{font-size:1rem}
+  .login-card{flex:0 0 440px;border-radius:0;padding:52px 48px;display:flex;flex-direction:column;justify-content:center;box-shadow:-12px 0 48px rgba(0,0,0,.15);overflow-y:auto;max-height:100vh}
 }
 
-.field { margin-bottom: 14px; }
-.field label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px; }
-.field-wrap { position: relative; }
-.field-wrap input {
-  width: 100%; padding: 14px 14px 14px 44px;
-  border: 1.5px solid var(--border);
-  border-radius: 13px;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.93rem; color: var(--text);
-  background: var(--surface); outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.field-wrap input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,86,219,0.12); }
-.field-wrap input::placeholder { color: var(--muted); }
-.field-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.role-tabs{display:flex;background:var(--bg2);border-radius:12px;padding:4px;gap:4px;margin-bottom:20px}
+.role-tab{flex:1;padding:10px;border:none;border-radius:9px;font-size:.84rem;font-weight:700;color:var(--muted);background:transparent;transition:all .2s}
+.role-tab.on{background:var(--surface);color:var(--p);box-shadow:0 1px 8px rgba(0,0,0,.1)}
 
-.hint-box {
-  background: var(--blue-light);
-  border-radius: 10px; padding: 10px 13px;
-  font-size: 0.75rem; color: var(--blue-mid);
-  margin-bottom: 18px; font-weight: 500;
-}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink2);margin-bottom:6px}
+.input-wrap{position:relative}
+.input-wrap svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;flex-shrink:0}
+.input-wrap input{width:100%;padding:13px 14px 13px 43px;border:1.5px solid var(--border);border-radius:12px;font-size:.92rem;color:var(--ink);background:var(--surface);outline:none;transition:border-color .2s,box-shadow .2s}
+.input-wrap input:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(29,78,216,.1)}
+.input-wrap input::placeholder{color:var(--muted)}
 
-.btn-main {
-  width: 100%; padding: 16px;
-  background: var(--blue); color: white; border: none;
-  border-radius: 14px; font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.95rem; font-weight: 700; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  box-shadow: 0 4px 16px rgba(26,86,219,0.3);
-  transition: transform 0.15s, box-shadow 0.15s;
-  -webkit-user-select: none; user-select: none;
-}
-.btn-main:active { transform: scale(0.97); box-shadow: 0 2px 8px rgba(26,86,219,0.2); }
+.cred-box{background:var(--p-light);border:1px solid var(--p-soft);border-radius:11px;padding:10px 14px;font-size:.76rem;color:var(--p-mid);margin-bottom:18px;font-weight:500;line-height:1.7}
 
-/* ═══════════════════════════════════════
-   APP HEADER
-═══════════════════════════════════════ */
-.app-header {
-  height: var(--header-h);
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center;
-  padding: 0 18px; gap: 12px;
-  flex-shrink: 0; position: relative; z-index: 10;
-}
-.header-back {
-  width: 38px; height: 38px; border-radius: 10px;
-  background: var(--bg2); border: none; cursor: pointer;
-  display: none; align-items: center; justify-content: center;
-  color: var(--text); flex-shrink: 0;
-  transition: background 0.15s;
-}
-.header-back:active { background: var(--border); }
-.header-back.show { display: flex; }
-.header-title { font-size: 1rem; font-weight: 800; flex: 1; letter-spacing: -0.3px; }
-.header-avatar {
-  width: 38px; height: 38px; border-radius: 12px;
-  background: var(--blue); color: white;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.82rem; font-weight: 800; flex-shrink: 0;
-}
-.header-role-dot {
-  display: inline-block; width: 7px; height: 7px;
-  border-radius: 50%; background: var(--green);
-  margin-right: 4px;
-}
+.btn-login{width:100%;padding:15px;background:var(--p);color:#fff;border:none;border-radius:13px;font-size:.95rem;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 18px rgba(29,78,216,.35);transition:transform .15s,box-shadow .15s}
+.btn-login:hover{background:var(--p-dark);transform:translateY(-1px);box-shadow:0 6px 22px rgba(29,78,216,.4)}
+.btn-login:active{transform:scale(.97)}
 
-/* ═══════════════════════════════════════
-   SCROLLABLE CONTENT
-═══════════════════════════════════════ */
-.page-scroll {
-  flex: 1; overflow-y: auto; overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
-  padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px);
-}
-.page-scroll::-webkit-scrollbar { display: none; }
+/* ─────────────────────────────────────
+   SIDEBAR
+───────────────────────────────────── */
+.sb-brand{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.sb-brand-row{display:flex;align-items:center;gap:10px}
+.sb-logo{width:36px;height:36px;border-radius:10px;background:var(--p);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-brand-row strong{color:#fff;font-size:.9rem;font-weight:800}
+.sb-tagline{color:rgba(255,255,255,.3);font-size:.68rem;margin-top:3px;padding-left:46px}
 
-/* ═══════════════════════════════════════
+.sb-user{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.06)}
+.sb-avatar{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:800;color:#fff;flex-shrink:0;background:var(--p);transition:background .3s}
+.sb-user-name{color:#fff;font-size:.84rem;font-weight:700}
+.sb-user-role{color:rgba(255,255,255,.4);font-size:.7rem;margin-top:1px}
+
+.sb-nav{flex:1;padding:10px 12px;overflow-y:auto}
+.sb-nav::-webkit-scrollbar{display:none}
+.sb-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:rgba(255,255,255,.25);padding:14px 8px 5px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;width:100%;border:none;background:transparent;color:rgba(255,255,255,.5);font-size:.85rem;font-weight:600;cursor:pointer;transition:all .18s;text-align:left;margin-bottom:1px}
+.sb-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.9)}
+.sb-item.on{background:rgba(29,78,216,.4);color:#fff;box-shadow:inset 0 0 0 1px rgba(29,78,216,.5)}
+.sb-item svg{flex-shrink:0;opacity:.7}
+.sb-item.on svg,.sb-item:hover svg{opacity:1}
+.sb-badge{margin-left:auto;background:var(--red);color:#fff;border-radius:20px;padding:1px 7px;font-size:.62rem;font-weight:800}
+
+.sb-footer{padding:12px;border-top:1px solid rgba(255,255,255,.06)}
+.sb-logout{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;width:100%;border:none;background:transparent;color:rgba(239,68,68,.7);font-size:.84rem;font-weight:700;cursor:pointer;transition:all .18s;text-align:left}
+.sb-logout:hover{background:rgba(239,68,68,.1);color:#f87171}
+
+/* ─────────────────────────────────────
+   TOP HEADER
+───────────────────────────────────── */
+#topbar{height:var(--hdr-h);background:var(--surface);border-bottom:1.5px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;position:sticky;top:0;z-index:100}
+.hdr-menu{width:36px;height:36px;border-radius:10px;background:var(--bg2);border:none;display:none;align-items:center;justify-content:center;color:var(--ink);flex-shrink:0}
+@media(max-width:899px){.hdr-menu{display:flex}}
+.hdr-back{width:36px;height:36px;border-radius:10px;background:var(--bg2);border:none;align-items:center;justify-content:center;color:var(--ink);flex-shrink:0;display:none}
+.hdr-back.on{display:flex}
+.hdr-title{flex:1;font-size:1rem;font-weight:800;color:var(--ink);letter-spacing:-.3px}
+@media(min-width:900px){.hdr-title{font-size:1.1rem}}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.hdr-clock{font-size:.75rem;color:var(--muted);font-weight:600;display:none}
+@media(min-width:900px){.hdr-clock{display:block}}
+.hdr-avatar{width:34px;height:34px;border-radius:10px;background:var(--p);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:800;cursor:pointer;transition:background .3s}
+
+/* ─────────────────────────────────────
    BOTTOM NAV
-═══════════════════════════════════════ */
-#bottom-nav {
-  height: calc(var(--nav-h) + var(--safe-bottom));
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  display: flex; align-items: flex-start;
-  padding-top: 8px;
-  padding-bottom: var(--safe-bottom);
-  flex-shrink: 0;
-  position: relative; z-index: 10;
-}
-.nav-tab {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; gap: 4px;
-  padding: 4px 2px 0;
-  cursor: pointer; border: none; background: none;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  color: var(--muted); transition: color 0.2s;
-  -webkit-user-select: none; user-select: none;
-}
-.nav-tab .nav-icon-wrap {
-  width: 36px; height: 28px;
-  border-radius: 20px; display: flex;
-  align-items: center; justify-content: center;
-  transition: background 0.2s;
-}
-.nav-tab span { font-size: 0.63rem; font-weight: 600; }
-.nav-tab.active { color: var(--blue); }
-.nav-tab.active .nav-icon-wrap { background: var(--blue-soft); }
+───────────────────────────────────── */
+#bottom-nav{height:calc(var(--nav-h) + var(--sb));background:var(--surface);border-top:1.5px solid var(--border);align-items:flex-start;padding-top:6px;padding-bottom:var(--sb);flex-shrink:0;z-index:100}
+.bn-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 2px;border:none;background:none;color:var(--muted);transition:color .18s}
+.bn-tab .bn-pip{width:34px;height:26px;border-radius:16px;display:flex;align-items:center;justify-content:center;transition:background .18s}
+.bn-tab span{font-size:.6rem;font-weight:700}
+.bn-tab.on{color:var(--p)}
+.bn-tab.on .bn-pip{background:var(--p-soft)}
 
-/* ═══════════════════════════════════════
-   SECTIONS (within page-scroll)
-═══════════════════════════════════════ */
-.sec { display: none; }
-.sec.active { display: block; animation: secIn 0.25s ease both; }
-@keyframes secIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform:translateY(0); } }
+/* ─────────────────────────────────────
+   PAGE SECTIONS
+───────────────────────────────────── */
+.sec{display:none;animation:fadeIn .22s ease both}
+.sec.on{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
 
-/* ═══════════════════════════════════════
-   COMMON COMPONENTS
-═══════════════════════════════════════ */
-.pad { padding: 18px; }
-.pad-x { padding-left: 18px; padding-right: 18px; }
-.gap { height: 14px; }
-.gap-sm { height: 8px; }
-
-/* Page title */
-.page-title { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.4px; }
-.page-sub { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
-
-/* Cards */
-.card {
-  background: var(--surface);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  overflow: hidden;
-}
-.card-pad { padding: 16px; }
-.card + .card { margin-top: 12px; }
-
-/* Stat strips */
-.stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.stat-chip {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 14px 14px;
-  display: flex; align-items: center; gap: 11px;
-}
-.stat-dot { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.stat-dot.blue { background: var(--blue-light); color: var(--blue); }
-.stat-dot.green { background: var(--green-bg); color: var(--green); }
-.stat-dot.amber { background: var(--amber-bg); color: var(--amber); }
-.stat-dot.red { background: var(--red-bg); color: var(--red); }
-.stat-val { font-size: 1.45rem; font-weight: 800; letter-spacing: -0.5px; line-height: 1; }
-.stat-lbl { font-size: 0.7rem; color: var(--muted); font-weight: 500; margin-top: 2px; }
-
-/* Section heading */
-.sec-heading {
-  font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 1px; color: var(--muted);
-  padding: 18px 18px 8px;
+/* ─────────────────────────────────────
+   LAYOUT HELPERS
+───────────────────────────────────── */
+.p{padding:20px}
+.px{padding-left:20px;padding-right:20px}
+@media(min-width:900px){.p{padding:26px 28px}.px{padding-left:28px;padding-right:28px}}
+.gap{height:12px}
+.row{display:flex;align-items:center;gap:12px}
+.col{display:flex;flex-direction:column}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+@media(min-width:900px){
+  .dg2{display:grid!important;grid-template-columns:1fr 1fr;gap:20px}
+  .dg3{display:grid!important;grid-template-columns:1fr 1fr 1fr;gap:16px}
+  .dg4{display:grid!important;grid-template-columns:repeat(4,1fr);gap:14px}
 }
 
-/* List rows */
-.list-row {
-  display: flex; align-items: center; gap: 12px;
-  padding: 13px 16px; border-top: 1px solid var(--border);
-  transition: background 0.15s;
-}
-.list-row:first-child { border-top: none; }
-.list-row:active { background: var(--bg); }
-.row-icon {
-  width: 40px; height: 40px; border-radius: 12px;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.row-icon.blue { background: var(--blue-light); color: var(--blue); }
-.row-icon.green { background: var(--green-bg); color: var(--green); }
-.row-icon.amber { background: var(--amber-bg); color: var(--amber); }
-.row-icon.red { background: var(--red-bg); color: var(--red); }
-.row-body { flex: 1; min-width: 0; }
-.row-title { font-size: 0.88rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.row-sub { font-size: 0.75rem; color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.row-end { flex-shrink: 0; text-align: right; }
+/* ─────────────────────────────────────
+   TYPOGRAPHY
+───────────────────────────────────── */
+.title{font-size:1.35rem;font-weight:800;letter-spacing:-.4px;color:var(--ink)}
+.subtitle{font-size:.83rem;color:var(--muted);margin-top:3px}
+.sh{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:18px 20px 8px}
+@media(min-width:900px){.sh{padding:18px 28px 8px}}
 
-/* Badges */
-.badge {
-  display: inline-flex; align-items: center; gap: 3px;
-  padding: 3px 9px; border-radius: 20px;
-  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.2px;
-}
-.badge-green { background: var(--green-bg); color: #065f46; }
-.badge-amber { background: var(--amber-bg); color: #92400e; }
-.badge-red   { background: var(--red-bg); color: #991b1b; }
-.badge-blue  { background: var(--blue-light); color: var(--blue); }
+/* ─────────────────────────────────────
+   CARDS
+───────────────────────────────────── */
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden}
+.card-p{padding:16px}
+.card+.card{margin-top:10px}
 
-/* Tags */
-.tag {
-  display: inline-flex; align-items: center;
-  padding: 2px 8px; border-radius: 6px;
-  font-size: 0.68rem; font-weight: 700;
-  background: var(--blue-light); color: var(--blue);
-}
+/* ─────────────────────────────────────
+   STAT CHIPS
+───────────────────────────────────── */
+.stat{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;display:flex;align-items:center;gap:12px;transition:box-shadow .2s,transform .2s}
+.stat:hover{box-shadow:var(--sh);transform:translateY(-1px)}
+.stat-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.si-blue{background:var(--p-light);color:var(--p)}
+.si-green{background:var(--green-bg);color:var(--green)}
+.si-amber{background:var(--amber-bg);color:var(--amber)}
+.si-red{background:var(--red-bg);color:var(--red)}
+.stat-val{font-size:1.5rem;font-weight:800;letter-spacing:-.5px;line-height:1;color:var(--ink)}
+.stat-lbl{font-size:.68rem;color:var(--muted);font-weight:600;margin-top:2px}
 
-/* Form */
-.form-field { margin-bottom: 14px; }
-.form-field label {
-  display: block; font-size: 0.75rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.4px;
-  color: var(--text2); margin-bottom: 6px;
-}
-.form-field input, .form-field select, .form-field textarea {
-  width: 100%; padding: 13px 14px;
-  border: 1.5px solid var(--border); border-radius: 12px;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.92rem; color: var(--text);
-  background: var(--surface); outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  -webkit-appearance: none;
-}
-.form-field input:focus, .form-field select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,86,219,0.1); }
-.form-field input::placeholder { color: var(--muted); }
-.form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+/* ─────────────────────────────────────
+   LIST ROWS
+───────────────────────────────────── */
+.lrow{display:flex;align-items:center;gap:12px;padding:13px 16px;border-top:1px solid var(--border);transition:background .15s}
+.lrow:first-child{border-top:none}
+.lrow:active{background:var(--bg)}
+.lrow-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.li-blue{background:var(--p-light);color:var(--p)}
+.li-green{background:var(--green-bg);color:var(--green)}
+.li-amber{background:var(--amber-bg);color:var(--amber)}
+.li-red{background:var(--red-bg);color:var(--red)}
+.li-purple{background:#f5f3ff;color:#7c3aed}
+.lrow-body{flex:1;min-width:0}
+.lrow-title{font-size:.88rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lrow-sub{font-size:.73rem;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lrow-end{flex-shrink:0}
 
-/* Buttons */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 11px 18px; border-radius: 11px; border: none; cursor: pointer;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.85rem; font-weight: 700;
-  transition: transform 0.12s, box-shadow 0.12s;
-  -webkit-user-select: none; user-select: none;
-}
-.btn:active { transform: scale(0.96); }
-.btn-blue { background: var(--blue); color: white; box-shadow: 0 2px 10px rgba(26,86,219,0.25); }
-.btn-green { background: var(--green); color: white; }
-.btn-red { background: var(--red); color: white; }
-.btn-ghost { background: var(--bg2); color: var(--text); border: 1px solid var(--border); }
-.btn-full { width: 100%; }
-.btn-sm { padding: 8px 13px; font-size: 0.76rem; border-radius: 9px; }
+/* ─────────────────────────────────────
+   BADGES
+───────────────────────────────────── */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:20px;font-size:.68rem;font-weight:700}
+.b-green{background:var(--green-bg);color:#15803d}
+.b-amber{background:var(--amber-bg);color:#92400e}
+.b-red{background:var(--red-bg);color:#991b1b}
+.b-blue{background:var(--p-light);color:var(--p)}
+.tag{display:inline-flex;padding:2px 8px;border-radius:6px;font-size:.68rem;font-weight:700;background:var(--p-light);color:var(--p)}
 
-/* Alert */
-.alert {
-  display: flex; align-items: flex-start; gap: 10px;
-  padding: 13px 15px; border-radius: 12px;
-  font-size: 0.82rem; font-weight: 600;
-  margin: 0 18px 14px; animation: fadeUp 0.3s ease both;
-}
-.alert-green { background: var(--green-bg); color: #065f46; border: 1px solid #a7f3d0; }
-.alert-red   { background: var(--red-bg); color: #991b1b; border: 1px solid #fecaca; }
-.alert-amber { background: var(--amber-bg); color: #92400e; border: 1px solid #fde68a; }
-.alert-close { margin-left: auto; cursor: pointer; opacity: 0.7; font-size: 1rem; flex-shrink: 0; }
+/* ─────────────────────────────────────
+   FORMS
+───────────────────────────────────── */
+.ff{margin-bottom:14px}
+.ff label{display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--ink2);margin-bottom:6px}
+.ff input,.ff select,.ff textarea{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:11px;font-size:.9rem;color:var(--ink);background:var(--surface);outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none}
+.ff input:focus,.ff select:focus,.ff textarea:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(29,78,216,.1)}
+.ff input::placeholder,.ff textarea::placeholder{color:var(--muted)}
+.ff textarea{resize:vertical;min-height:80px}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
-/* Divider */
-.divider { height: 1px; background: var(--border); margin: 4px 0; }
+/* ─────────────────────────────────────
+   BUTTONS
+───────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border-radius:11px;border:none;font-size:.85rem;font-weight:700;cursor:pointer;transition:transform .12s,box-shadow .12s,background .15s}
+.btn:active{transform:scale(.96)}
+.btn-p{background:var(--p);color:#fff;box-shadow:0 2px 12px rgba(29,78,216,.3)}
+.btn-p:hover{background:var(--p-dark);box-shadow:0 4px 18px rgba(29,78,216,.35)}
+.btn-g{background:var(--green);color:#fff}
+.btn-g:hover{background:#15803d}
+.btn-r{background:var(--red);color:#fff}
+.btn-r:hover{background:#b91c1c}
+.btn-ghost{background:var(--bg2);color:var(--ink);border:1.5px solid var(--border)}
+.btn-ghost:hover{border-color:var(--p);color:var(--p)}
+.btn-w{width:100%}
+.btn-sm{padding:7px 13px;font-size:.76rem;border-radius:9px}
+.btn-danger-soft{background:var(--red-bg);color:var(--red);border:1.5px solid #fecaca}
+.btn-danger-soft:hover{background:var(--red);color:#fff}
 
-/* Empty */
-.empty {
-  text-align: center; padding: 48px 24px;
-  color: var(--muted); font-size: 0.85rem;
-}
-.empty svg { opacity: 0.3; display: block; margin: 0 auto 12px; }
+/* ─────────────────────────────────────
+   ALERTS
+───────────────────────────────────── */
+.alert{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:11px;font-size:.82rem;font-weight:600;margin-bottom:14px;animation:fadeIn .3s ease both}
+.a-green{background:var(--green-bg);color:#166534;border:1px solid #bbf7d0}
+.a-red{background:var(--red-bg);color:#991b1b;border:1px solid #fecaca}
+.a-amber{background:var(--amber-bg);color:#92400e;border:1px solid #fde68a}
+.alert-x{margin-left:auto;cursor:pointer;opacity:.6;font-size:1rem;flex-shrink:0;line-height:1;padding:0 2px}
+.alert-x:hover{opacity:1}
 
-/* Resource card (faculty) */
-.res-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 16px; margin-bottom: 10px;
-}
-.res-card-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-.res-card-icon { width: 46px; height: 46px; border-radius: 13px; background: var(--blue-light); color: var(--blue); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.res-card h3 { font-size: 0.93rem; font-weight: 700; }
-.res-card-meta { display: flex; gap: 14px; margin-bottom: 13px; }
-.res-meta-item { font-size: 0.75rem; color: var(--muted); display: flex; align-items: center; gap: 4px; }
-.res-meta-item strong { color: var(--text); }
+/* ─────────────────────────────────────
+   RESOURCE CARDS (FACULTY)
+───────────────────────────────────── */
+.res-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-lg);padding:18px;transition:box-shadow .2s,transform .2s;margin-bottom:12px}
+.res-card:hover{box-shadow:var(--sh-lg);transform:translateY(-2px)}
+.res-card-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
+.res-card-icon{width:48px;height:48px;border-radius:14px;background:var(--p-light);color:var(--p);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.res-card-name{font-size:.95rem;font-weight:800;color:var(--ink)}
+.res-card-meta{display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.res-meta{font-size:.73rem;color:var(--muted);display:flex;align-items:center;gap:4px}
+.res-meta strong{color:var(--ink);font-weight:700}
 
-/* Progress bar */
-.prog-bar { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; margin-top: 4px; }
-.prog-fill { height: 100%; background: var(--blue); border-radius: 99px; transition: width 0.6s ease; }
-.prog-fill.green { background: var(--green); }
+/* ─────────────────────────────────────
+   BOOKING WIZARD
+───────────────────────────────────── */
+.step-bar{display:flex;align-items:center;gap:0}
+.step-dot{width:30px;height:30px;border-radius:50%;border:2px solid var(--border);background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;color:var(--muted);flex-shrink:0;transition:all .25s}
+.step-dot.done{background:var(--green);border-color:var(--green);color:#fff}
+.step-dot.active{background:var(--p);border-color:var(--p);color:#fff;box-shadow:0 2px 10px rgba(29,78,216,.3)}
+.step-line{flex:1;height:2px;background:var(--border);transition:background .25s}
+.step-line.done{background:var(--green)}
 
-/* Approval row actions */
-.approval-actions { display: flex; gap: 8px; margin-top: 10px; }
+.room-card{display:flex;align-items:center;gap:12px;padding:14px;border:2px solid var(--border);border-radius:13px;cursor:pointer;transition:all .18s;background:var(--surface);margin-bottom:9px}
+.room-card:hover,.room-card.on{border-color:var(--p);background:var(--p-light)}
+.room-icon{width:42px;height:42px;border-radius:11px;background:var(--p-light);color:var(--p);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.room-card.on .room-icon{background:var(--p);color:#fff}
+.room-name{font-size:.9rem;font-weight:700;color:var(--ink)}
+.room-info{font-size:.73rem;color:var(--muted);margin-top:1px}
+.room-check{margin-left:auto;width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s}
+.room-card.on .room-check{background:var(--p);border-color:var(--p)}
 
-/* Profile section */
-.profile-header {
-  background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
-  padding: 24px 18px 28px; color: white;
-}
-.profile-avatar {
-  width: 64px; height: 64px; border-radius: 20px;
-  background: rgba(255,255,255,0.2);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.4rem; font-weight: 800; margin-bottom: 12px;
-  border: 2px solid rgba(255,255,255,0.3);
-}
-.profile-name { font-size: 1.15rem; font-weight: 800; }
-.profile-role { font-size: 0.8rem; opacity: 0.7; margin-top: 2px; }
+.ct-chip{display:flex;align-items:center;justify-content:center;padding:9px 6px;border:2px solid var(--border);border-radius:10px;font-size:.72rem;font-weight:700;cursor:pointer;transition:all .15s;background:var(--surface);text-align:center}
+.ct-chip.on{border-color:var(--p);background:var(--p-light);color:var(--p)}
 
-/* Toast */
-#toast {
-  position: fixed; bottom: calc(var(--nav-h) + var(--safe-bottom) + 12px);
-  left: 50%; transform: translateX(-50%) translateY(20px);
-  background: #1f2937; color: white;
-  padding: 12px 20px; border-radius: 12px;
-  font-size: 0.82rem; font-weight: 600;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-  opacity: 0; pointer-events: none;
-  transition: all 0.3s cubic-bezier(.4,0,.2,1);
-  z-index: 9999; white-space: nowrap; max-width: 90vw;
-}
-#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.slot-btn{padding:9px 6px;border:2px solid var(--border);border-radius:10px;background:var(--surface);font-size:.73rem;font-weight:700;color:var(--ink);cursor:pointer;transition:all .15s}
+.slot-btn:hover{border-color:var(--p);background:var(--p-light);color:var(--p)}
+.slot-btn.on{border-color:var(--p);background:var(--p);color:#fff}
+.slot-btn.booked{border-color:var(--red);background:var(--red-bg);color:var(--red);cursor:not-allowed;opacity:.65}
 
-/* Desktop sidebar */
-#desktop-sidebar {
-  display: none;
-  width: 260px;
-  background: #0f172a;
-  flex-direction: column;
-  padding: 0;
-  overflow: hidden;
-}
-.ds-brand {
-  padding: 28px 22px 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-}
-.ds-brand-logo {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 4px;
-}
-.ds-brand-icon {
-  width: 36px; height: 36px; border-radius: 10px;
-  background: var(--blue); display: flex; align-items: center; justify-content: center;
-}
-.ds-brand-logo strong { color: white; font-size: 0.9rem; font-weight: 800; }
-.ds-brand p { color: rgba(255,255,255,0.35); font-size: 0.72rem; padding-left: 46px; }
+.recap-pill{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;background:var(--p-light);color:var(--p);font-size:.71rem;font-weight:700}
 
-.ds-user {
-  display: flex; align-items: center; gap: 10px;
-  padding: 16px 22px; border-bottom: 1px solid rgba(255,255,255,0.06);
-}
-.ds-user-avatar {
-  width: 36px; height: 36px; border-radius: 10px;
-  background: var(--blue); color: white;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.8rem; font-weight: 800; flex-shrink: 0;
-}
-.ds-user-name { color: white; font-size: 0.82rem; font-weight: 700; }
-.ds-user-role { color: rgba(255,255,255,0.4); font-size: 0.7rem; }
+.avail-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:.77rem}
+.avail-row:last-child{border-bottom:none}
+.avail-time{font-weight:700;min-width:100px}
 
-.ds-nav { flex: 1; padding: 12px 12px 0; overflow-y: auto; }
-.ds-nav-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.3); padding: 14px 10px 6px; }
-.ds-nav-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 11px 12px; border-radius: 10px;
-  cursor: pointer; color: rgba(255,255,255,0.55);
-  font-size: 0.85rem; font-weight: 600; margin-bottom: 2px;
-  transition: all 0.18s; border: none; background: none; width: 100%;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  text-align: left;
-}
-.ds-nav-item:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.9); }
-.ds-nav-item.active { background: rgba(26,86,219,0.3); color: white; }
-.ds-nav-item svg { flex-shrink: 0; }
-
-.ds-footer {
-  padding: 12px;
-  border-top: 1px solid rgba(255,255,255,0.06);
-}
-
-/* ═══════════════════════════════════════
-   DESKTOP WRAPPER
-═══════════════════════════════════════ */
-#desktop-layout {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  min-height: 100vh;
-}
-
-/* Desktop sidebar hidden on mobile */
-#desktop-sidebar { display: none; }
-
-/* ═══════════════════════════════════════
+/* ─────────────────────────────────────
    PROFILE
-═══════════════════════════════════════ */
-.prf-banner {
-  position: relative;
-  overflow: hidden;
-  padding: 28px 18px 20px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-}
-.prf-banner-bg {
-  position: absolute; inset: 0;
-  background: linear-gradient(135deg, #1a56db 0%, #1e40af 60%, #1e3a8a 100%);
-  opacity: 0.92;
-  transition: background 0.4s ease;
-}
-.prf-banner-content {
-  position: relative; z-index: 1;
-  display: flex; flex-direction: column; align-items: center;
-  gap: 10px;
-}
-.prf-avatar-wrap {
-  position: relative; display: inline-block;
-}
-.prf-avatar {
-  width: 80px; height: 80px; border-radius: 24px;
-  background: rgba(255,255,255,0.2);
-  border: 3px solid rgba(255,255,255,0.4);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 2rem; font-weight: 800; color: white;
-  letter-spacing: -1px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-  transition: background 0.3s;
-}
-.prf-avatar-edit-btn {
-  position: absolute; bottom: -4px; right: -4px;
-  width: 26px; height: 26px; border-radius: 8px;
-  background: white; color: var(--blue);
-  border: 2px solid rgba(255,255,255,0.6);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  transition: transform 0.15s;
-}
-.prf-avatar-edit-btn:active { transform: scale(0.9); }
-.prf-hero-info { text-align: center; }
-.prf-hero-name {
-  font-size: 1.25rem; font-weight: 800; color: white;
-  letter-spacing: -0.4px; line-height: 1.2;
-}
-.prf-hero-role {
-  display: flex; align-items: center; justify-content: center;
-  gap: 5px; margin-top: 3px;
-  font-size: 0.78rem; color: rgba(255,255,255,0.75); font-weight: 500;
-}
-.prf-role-dot {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: #4ade80; display: inline-block;
-  box-shadow: 0 0 6px #4ade80;
-}
-.prf-edit-toggle-btn {
-  display: flex; align-items: center; gap: 7px;
-  padding: 9px 18px; border-radius: 20px;
-  background: rgba(255,255,255,0.15);
-  border: 1.5px solid rgba(255,255,255,0.3);
-  color: white; font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.82rem; font-weight: 700; cursor: pointer;
-  backdrop-filter: blur(8px);
-  transition: background 0.18s, transform 0.12s;
-  margin-top: 4px;
-}
-.prf-edit-toggle-btn:active { transform: scale(0.96); background: rgba(255,255,255,0.25); }
-.prf-edit-toggle-btn.editing {
-  background: rgba(255,255,255,0.9); color: var(--blue);
-}
+───────────────────────────────────── */
+.prf-banner{position:relative;overflow:hidden;padding:28px 20px 22px}
+.prf-banner-bg{position:absolute;inset:0;background:linear-gradient(135deg,#1d4ed8,#1e3a8a);transition:background .4s}
+.prf-banner-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.prf-av-wrap{position:relative;display:inline-block}
+.prf-av{width:82px;height:82px;border-radius:24px;border:3px solid rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;color:#fff;letter-spacing:-1px;box-shadow:0 8px 24px rgba(0,0,0,.2);transition:all .3s;background:rgba(255,255,255,.18)}
+.prf-av-btn{position:absolute;bottom:-4px;right:-4px;width:26px;height:26px;border-radius:8px;background:#fff;color:var(--p);border:2px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15);transition:transform .15s}
+.prf-av-btn:active{transform:scale(.88)}
+.prf-name{font-size:1.2rem;font-weight:800;color:#fff;letter-spacing:-.3px}
+.prf-role-line{display:flex;align-items:center;gap:5px;font-size:.77rem;color:rgba(255,255,255,.7);font-weight:500}
+.prf-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;display:inline-block;box-shadow:0 0 6px #4ade80}
+.prf-edit-btn{display:flex;align-items:center;gap:7px;padding:8px 18px;border-radius:20px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);color:#fff;font-size:.8rem;font-weight:700;cursor:pointer;backdrop-filter:blur(8px);transition:all .18s;margin-top:4px}
+.prf-edit-btn:active{transform:scale(.96)}
+.prf-edit-btn.editing{background:rgba(255,255,255,.9);color:var(--p)}
 
-/* Color picker */
-.color-picker-wrap {
-  position: relative; z-index: 1;
-  background: rgba(255,255,255,0.95);
-  border-radius: 14px; padding: 12px 14px;
-  margin-top: 12px;
-  animation: fadeUp 0.25s ease both;
-}
-.color-picker-label {
-  font-size: 0.72rem; font-weight: 700; color: var(--text2);
-  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;
-}
-.color-swatches { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-.color-swatch {
-  width: 36px; height: 36px; border-radius: 12px;
-  cursor: pointer; border: 3px solid transparent;
-  transition: transform 0.15s, border-color 0.15s;
-  position: relative;
-}
-.color-swatch:active { transform: scale(0.88); }
-.color-swatch.active { border-color: white; box-shadow: 0 0 0 2px rgba(0,0,0,0.3); }
-.color-swatch.active::after {
-  content: '✓'; position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.75rem; font-weight: 800; color: white;
-}
+.prf-stats{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1.5px solid var(--border)}
+.prf-stat{text-align:center;padding:14px 8px;border-right:1.5px solid var(--border)}
+.prf-stat:last-child{border-right:none}
+.prf-sv{font-size:1.3rem;font-weight:800;letter-spacing:-.5px;color:var(--ink)}
+.prf-sl{font-size:.63rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-top:1px}
 
-/* Stats row */
-.prf-stats-row {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 0; border-bottom: 1px solid var(--border);
-}
-.prf-stat {
-  text-align: center; padding: 14px 8px;
-  border-right: 1px solid var(--border);
-}
-.prf-stat:last-child { border-right: none; }
-.prf-stat-val { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.5px; color: var(--text); }
-.prf-stat-lbl { font-size: 0.65rem; color: var(--muted); font-weight: 600; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.3px; }
+.cp-wrap{position:relative;z-index:1;background:rgba(255,255,255,.95);border-radius:14px;padding:12px 14px;margin-top:12px;animation:fadeIn .25s ease both}
+.cp-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink2);margin-bottom:10px}
+.cp-swatches{display:flex;gap:9px;flex-wrap:wrap;justify-content:center}
+.cp-swatch{width:34px;height:34px;border-radius:11px;cursor:pointer;border:3px solid transparent;transition:transform .15s,border-color .15s;position:relative}
+.cp-swatch:active{transform:scale(.88)}
+.cp-swatch.on{border-color:#fff;box-shadow:0 0 0 2px rgba(0,0,0,.3)}
+.cp-swatch.on::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;color:#fff}
 
-/* ── STEP INDICATOR ── */
-.step-dot {
-  width:32px;height:32px;border-radius:50%;
-  background:var(--border);color:var(--muted);
-  display:flex;align-items:center;justify-content:center;
-  font-size:0.75rem;font-weight:800;flex-shrink:0;
-  transition:all 0.25s;cursor:default;
-}
-.step-dot.active { background:var(--blue);color:white;box-shadow:0 2px 10px rgba(26,86,219,0.3); }
-.step-dot.done { background:var(--green);color:white; }
-.step-line { flex:1;height:2px;background:var(--border);transition:background 0.25s; }
-.step-line.done { background:var(--green); }
+/* ─────────────────────────────────────
+   APPROVAL CARDS
+───────────────────────────────────── */
+.appr-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:10px;transition:box-shadow .2s}
+.appr-card:hover{box-shadow:var(--sh)}
+.appr-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:8px}
+.appr-resource{font-size:.93rem;font-weight:800;color:var(--ink)}
+.appr-faculty{font-size:.75rem;color:var(--muted);margin-top:2px}
+.appr-meta{display:flex;gap:10px;flex-wrap:wrap;font-size:.73rem;color:var(--muted);margin-bottom:10px}
+.appr-actions{display:flex;gap:8px}
 
-/* ── ROOM PICKER ── */
-.room-pick-card {
-  display:flex;align-items:center;gap:12px;
-  padding:14px 14px;border:2px solid var(--border);
-  border-radius:14px;margin-bottom:10px;cursor:pointer;
-  transition:all 0.18s;background:var(--surface);
-}
-.room-pick-card:active,.room-pick-card:hover { border-color:var(--blue);background:var(--blue-light); }
-.room-pick-card.selected { border-color:var(--blue);background:var(--blue-light); }
-.room-pick-icon { width:44px;height:44px;border-radius:12px;background:var(--blue-light);color:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0; }
-.room-pick-card.selected .room-pick-icon { background:var(--blue);color:white; }
-.room-pick-name { font-size:0.9rem;font-weight:700; }
-.room-pick-meta { font-size:0.75rem;color:var(--muted);margin-top:2px; }
-.room-pick-check { margin-left:auto;width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.18s; }
-.room-pick-card.selected .room-pick-check { background:var(--blue);border-color:var(--blue); }
-.avail-badge { font-size:0.68rem;font-weight:700;padding:2px 7px;border-radius:20px; }
-.avail-badge.free { background:var(--green-bg);color:#065f46; }
-.avail-badge.busy { background:var(--red-bg);color:#991b1b; }
+/* ─────────────────────────────────────
+   PROGRESS BAR
+───────────────────────────────────── */
+.prog-wrap{height:7px;background:var(--bg2);border-radius:99px;overflow:hidden;margin-top:5px}
+.prog-fill{height:100%;border-radius:99px;transition:width .6s ease}
+.pf-blue{background:var(--p)}
+.pf-green{background:var(--green)}
 
-/* ── CLASS TYPE CHIPS ── */
-.ct-chip {
-  display:flex;align-items:center;justify-content:center;
-  padding:9px 4px;border:2px solid var(--border);border-radius:10px;
-  font-size:0.72rem;font-weight:700;cursor:pointer;
-  transition:all 0.15s;text-align:center;
-  background:var(--surface);
-}
-.ct-chip.selected { border-color:var(--blue);background:var(--blue-light);color:var(--blue); }
-.ct-chip:active { transform:scale(0.96); }
+/* ─────────────────────────────────────
+   EMPTY STATE
+───────────────────────────────────── */
+.empty{text-align:center;padding:44px 24px;color:var(--muted)}
+.empty svg{opacity:.25;margin:0 auto 12px}
+.empty p{font-size:.85rem;line-height:1.6}
 
-/* ── TIME SLOT BUTTONS ── */
-.slot-btn {
-  padding:10px 6px;border:2px solid var(--border);
-  border-radius:10px;background:var(--surface);
-  font-family:'Plus Jakarta Sans',sans-serif;
-  font-size:0.75rem;font-weight:700;color:var(--text);
-  cursor:pointer;transition:all 0.15s;
-}
-.slot-btn:hover { border-color:var(--blue);background:var(--blue-light);color:var(--blue); }
-.slot-btn.selected { border-color:var(--blue);background:var(--blue);color:white; }
-.slot-btn.booked { border-color:var(--red);background:var(--red-bg);color:var(--red);cursor:not-allowed;opacity:0.7; }
+/* ─────────────────────────────────────
+   TOAST
+───────────────────────────────────── */
+#toast{position:fixed;bottom:calc(var(--nav-h) + var(--sb) + 12px);left:50%;transform:translateX(-50%) translateY(12px);background:#0f172a;color:#fff;padding:11px 20px;border-radius:12px;font-size:.81rem;font-weight:700;box-shadow:0 8px 28px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:all .28s cubic-bezier(.4,0,.2,1);z-index:9999;white-space:nowrap;max-width:90vw}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(min-width:900px){#toast{bottom:24px}}
 
-/* ── RECAP PILLS ── */
-.recap-pill {
-  display:inline-flex;align-items:center;gap:4px;
-  padding:4px 10px;border-radius:20px;
-  background:var(--blue-light);color:var(--blue);
-  font-size:0.72rem;font-weight:700;
-}
-
-/* ── AVAIL ROW ── */
-.avail-row {
-  display:flex;align-items:center;gap:8px;
-  padding:7px 0;border-bottom:1px solid var(--border);
-  font-size:0.78rem;
-}
-.avail-row:last-child { border-bottom:none; }
-.avail-time { font-weight:700;min-width:100px; }
-
+/* ─────────────────────────────────────
+   MISC UTILITIES
+───────────────────────────────────── */
+.divider{height:1px;background:var(--border);margin:4px 0}
+.mt0{margin-top:0!important}
+.mb0{margin-bottom:0!important}
 </style>
 </head>
 <body>
 
-<div id="desktop-layout">
-
-<!-- DESKTOP SIDEBAR -->
-<div id="desktop-sidebar">
-  <div class="ds-brand">
-    <div class="ds-brand-logo">
-      <div class="ds-brand-icon">
-        <svg width="18" height="18" fill="none" stroke="white" stroke-width="2.2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      </div>
-      <strong>Smart Campus</strong>
+<!-- ══════════════════════════════════════════
+     LOGIN SCREEN (outside root so it can cover all)
+══════════════════════════════════════════ -->
+<div class="screen on" id="s-login" style="z-index:500">
+  <div class="login-orb a"></div>
+  <div class="login-orb b"></div>
+  <div class="login-orb c"></div>
+  <div class="login-hero">
+    <div class="login-logo-box">
+      <svg width="36" height="36" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     </div>
+    <h1>Smart Campus</h1>
     <p>Resource Management System</p>
-  </div>
-  <div class="ds-user">
-    <div class="ds-user-avatar" id="ds-avatar">A</div>
-    <div>
-      <div class="ds-user-name" id="ds-name">Admin</div>
-      <div class="ds-user-role" id="ds-role">Administrator</div>
+    <div class="login-features">
+      <span class="login-feat">📚 Book Resources</span>
+      <span class="login-feat">✅ Instant Approval</span>
+      <span class="login-feat">📊 Analytics</span>
     </div>
   </div>
-  <div class="ds-nav" id="ds-nav"></div>
-  <div class="ds-footer">
-    <button class="ds-nav-item" onclick="doLogout()" style="color:rgba(239,68,68,0.8);width:100%">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Sign Out
+  <div class="login-card">
+    <h2>Welcome back 👋</h2>
+    <p>Sign in to continue</p>
+    <div class="role-tabs">
+      <button class="role-tab on" id="rt-admin" onclick="setRole('admin')">🛡 Admin</button>
+      <button class="role-tab" id="rt-faculty" onclick="setRole('faculty')">🎓 Faculty</button>
+    </div>
+    <div id="login-err"></div>
+    <div class="field">
+      <label>Username</label>
+      <div class="input-wrap">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        <input type="text" id="l-user" placeholder="Enter username" autocomplete="username"/>
+      </div>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <div class="input-wrap">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <input type="password" id="l-pass" placeholder="Enter password" autocomplete="current-password"/>
+      </div>
+    </div>
+    <div class="cred-box">
+      🔑 <b>Admin:</b> admin / admin123<br/>
+      🔑 <b>Faculty:</b> faculty / faculty123
+    </div>
+    <button class="btn-login" onclick="doLogin()">
+      <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      Sign In
     </button>
   </div>
 </div>
 
-<!-- MOBILE APP -->
-<div id="app">
+<!-- ══════════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════════ -->
+<div id="root" style="display:none">
 
-  <!-- LOGIN -->
-  <div id="login-screen" class="screen active">
-    <div class="login-bg-circles"></div>
-    <div class="login-hero">
-      <div class="login-icon-wrap">
-        <svg width="36" height="36" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+  <!-- OVERLAY (mobile) -->
+  <div id="overlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sb-brand">
+      <div class="sb-brand-row">
+        <div class="sb-logo">
+          <svg width="18" height="18" fill="none" stroke="white" stroke-width="2.2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <strong>Smart Campus</strong>
       </div>
-      <h1>Smart Campus</h1>
-      <p>Resource Management System</p>
+      <div class="sb-tagline">Resource Management System</div>
     </div>
-    <div class="login-sheet">
-      <h2>Welcome back 👋</h2>
-      <p>Sign in to access your dashboard</p>
-
-      <div class="role-switch">
-        <button class="role-btn active" onclick="setRole('admin',this)">Admin</button>
-        <button class="role-btn" onclick="setRole('faculty',this)">Faculty</button>
+    <div class="sb-user">
+      <div class="sb-avatar" id="sb-av">A</div>
+      <div>
+        <div class="sb-user-name" id="sb-name">User</div>
+        <div class="sb-user-role" id="sb-role">Role</div>
       </div>
-
-      <div id="login-err"></div>
-
-      <div class="field">
-        <label>Username</label>
-        <div class="field-wrap">
-          <span class="field-icon"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
-          <input type="text" id="l-user" placeholder="Enter username" autocomplete="username"/>
-        </div>
-      </div>
-      <div class="field">
-        <label>Password</label>
-        <div class="field-wrap">
-          <span class="field-icon"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
-          <input type="password" id="l-pass" placeholder="Enter password" autocomplete="current-password"/>
-        </div>
-      </div>
-
-      <div class="hint-box">🔑 Admin: <b>admin</b> / <b>admin123</b>       <div class="hint-box">Demo → Admin: <b>admin / admin123</b> &nbsp;·&nbsp; Faculty: <b>faculty / faculty123</b></div>nbsp;·      <div class="hint-box">Demo → Admin: <b>admin / admin123</b> &nbsp;·&nbsp; Faculty: <b>faculty / faculty123</b></div>nbsp; Faculty: <b>faculty</b> / <b>faculty123</b></div>
-
-      <button class="btn-main" onclick="doLogin()">
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-        Sign In
+    </div>
+    <nav class="sb-nav" id="sb-nav"></nav>
+    <div class="sb-footer">
+      <button class="sb-logout" onclick="doLogout()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
       </button>
     </div>
-  </div>
+  </aside>
 
-  <!-- MAIN APP -->
-  <div id="main-screen" class="screen">
+  <!-- MAIN AREA -->
+  <div id="main">
 
-    <!-- HEADER -->
-    <div class="app-header">
-      <button class="header-back" id="header-back" onclick="goBack()">
+    <!-- TOPBAR -->
+    <div id="topbar">
+      <button class="hdr-menu" onclick="openSidebar()">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <button class="hdr-back" id="hdr-back" onclick="goBack()">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
-      <div class="header-title" id="header-title">Dashboard</div>
-      <div class="header-avatar" id="header-avatar">A</div>
+      <div class="hdr-title" id="hdr-title">Dashboard</div>
+      <div class="hdr-right">
+        <span class="hdr-clock" id="hdr-clock"></span>
+        <div class="hdr-avatar" id="hdr-av" onclick="go('profile')">A</div>
+      </div>
     </div>
 
-    <!-- PAGE SCROLL -->
-    <div class="page-scroll" id="page-scroll">
-      <div id="global-alert-wrap"></div>
+    <!-- CONTENT -->
+    <div id="content">
+      <div id="g-alert"></div>
 
-      <!-- ─── ADMIN: DASHBOARD ─── -->
+      <!-- ══════════════════════════════
+           ADMIN: DASHBOARD
+      ══════════════════════════════ -->
       <div class="sec" id="sec-admin-dashboard">
-        <div class="pad">
-          <div class="page-title" id="dash-greeting">Good morning 👋</div>
-          <div class="page-sub">Here's what's happening today</div>
+        <div class="p">
+          <div class="title" id="greeting">Good morning 👋</div>
+          <div class="subtitle">Here's what's happening on campus today</div>
         </div>
-        <div class="pad-x" id="dash-stat-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px">
-          <div class="stat-chip"><div class="stat-dot blue"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div><div><div class="stat-val" id="s-resources">0</div><div class="stat-lbl">Resources</div></div></div>
-          <div class="stat-chip"><div class="stat-dot green"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div><div class="stat-val" id="s-approved">0</div><div class="stat-lbl">Approved</div></div></div>
-          <div class="stat-chip"><div class="stat-dot amber"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div><div class="stat-val" id="s-pending">0</div><div class="stat-lbl">Pending</div></div></div>
-          <div class="stat-chip"><div class="stat-dot red"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div><div><div class="stat-val" id="s-rejected">0</div><div class="stat-lbl">Rejected</div></div></div>
+        <div class="px g2 dg4" id="dash-stats" style="margin-bottom:6px"></div>
+        <div class="sh">Recent Booking Requests</div>
+        <div class="px">
+          <div class="card" id="dash-recent"></div>
         </div>
-
-        <div id="dash-two-col">
-          <div>
-            <div class="sec-heading" style="padding-left:0">Recent Booking Requests</div>
-            <div class="card">
-              <div id="dash-bookings-list"></div>
-            </div>
-          </div>
-          <div>
-            <div class="sec-heading" style="padding-left:0">Campus Resources</div>
-            <div class="card">
-              <div id="dash-res-list"></div>
-            </div>
-          </div>
+        <div class="sh">Campus Resources</div>
+        <div class="px">
+          <div class="card" id="dash-res-list"></div>
         </div>
         <div class="gap"></div>
       </div>
 
-      <!-- ─── ADMIN: MANAGE RESOURCES ─── -->
+      <!-- ══════════════════════════════
+           ADMIN: MANAGE RESOURCES
+      ══════════════════════════════ -->
       <div class="sec" id="sec-admin-resources">
-        <div class="pad">
-          <div class="page-title">Resources</div>
-          <div class="page-sub">Add and manage campus resources</div>
+        <div class="p">
+          <div class="title">Manage Resources</div>
+          <div class="subtitle">Add, edit or remove campus resources</div>
         </div>
-
-        <div id="res-two-col">
-          <div>
-          <div class="card card-pad" style="margin-bottom:14px">
-            <div style="font-size:0.82rem;font-weight:700;margin-bottom:14px;color:var(--text2)" id="res-form-label">➕ Add New Resource</div>
+        <div class="px" id="res-layout">
+          <!-- Form -->
+          <div class="card card-p" id="res-form-card" style="margin-bottom:14px">
+            <div style="font-size:.82rem;font-weight:800;margin-bottom:14px;color:var(--ink)" id="res-form-head">➕ Add New Resource</div>
             <div id="res-alert"></div>
-            <div class="form-field">
+            <div class="ff">
               <label>Resource Name</label>
               <input type="text" id="r-name" placeholder="e.g. Computer Lab A"/>
             </div>
-            <div class="form-2col">
-              <div class="form-field">
+            <div class="f2">
+              <div class="ff">
                 <label>Type</label>
                 <select id="r-type">
-                  <option value="">Select...</option>
-                  <option value="Classroom">Classroom</option>
-                  <option value="Lab">Lab</option>
-                  <option value="Seminar Hall">Seminar Hall</option>
-                  <option value="Conference Room">Conference Room</option>
+                  <option value="">Select type...</option>
+                  <option>Classroom</option>
+                  <option>Lab</option>
+                  <option>Seminar Hall</option>
+                  <option>Conference Room</option>
+                  <option>Library</option>
                 </select>
               </div>
-              <div class="form-field">
+              <div class="ff">
                 <label>Capacity</label>
-                <input type="number" id="r-cap" placeholder="40" min="1"/>
+                <input type="number" id="r-cap" placeholder="e.g. 40" min="1"/>
               </div>
             </div>
-            <input type="hidden" id="r-edit-id"/>
-            <div style="display:flex;gap:8px">
-              <button class="btn btn-blue btn-full" onclick="saveResource()">
-                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
-                <span id="r-btn-lbl">Save</span>
+            <div class="ff mb0">
+              <label>Location / Block</label>
+              <input type="text" id="r-loc" placeholder="e.g. A Block, Ground Floor"/>
+            </div>
+            <input type="hidden" id="r-eid"/>
+            <div style="display:flex;gap:8px;margin-top:14px">
+              <button class="btn btn-p" style="flex:1" onclick="saveResource()">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+                <span id="r-btn-lbl">Save Resource</span>
               </button>
-              <button class="btn btn-ghost" id="r-cancel-btn" onclick="cancelEditRes()" style="display:none">Cancel</button>
+              <button class="btn btn-ghost" id="r-cancel" onclick="cancelEditRes()" style="display:none">Cancel</button>
             </div>
           </div>
-        </div>
-
-          </div><!-- /form col -->
+          <!-- List -->
           <div>
-            <div class="sec-heading" style="padding-left:0">All Resources (<span id="res-count">0</span>)</div>
-            <div class="card" id="res-list-wrap">
-              <div id="res-list"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <span style="font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">All Resources</span>
+              <span class="badge b-blue" id="res-count-badge">0</span>
             </div>
-          </div><!-- /table col -->
-        </div><!-- /res-two-col -->
+            <div class="card" id="res-list"></div>
+          </div>
+        </div>
         <div class="gap"></div>
       </div>
 
-      <!-- ─── ADMIN: APPROVALS ─── -->
+      <!-- ══════════════════════════════
+           ADMIN: BOOKING REQUESTS
+      ══════════════════════════════ -->
       <div class="sec" id="sec-admin-approvals">
-        <div class="pad">
-          <div class="page-title">Booking Requests</div>
-          <div class="page-sub">Approve or reject pending requests</div>
+        <div class="p">
+          <div class="title">Booking Requests</div>
+          <div class="subtitle">Review and approve or reject faculty requests</div>
         </div>
-
-        <div class="pad-x" style="margin-bottom:12px">
-          <select id="filter-status" onchange="renderApprovals()" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:11px;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.85rem;font-weight:600;color:var(--text);background:var(--surface);outline:none;-webkit-appearance:none">
-            <option value="">All Statuses</option>
-            <option value="Pending">Pending Only</option>
-            <option value="Approved">Approved Only</option>
-            <option value="Rejected">Rejected Only</option>
-          </select>
+        <div class="px" style="margin-bottom:14px">
+          <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px" id="filter-tabs">
+            <button class="btn btn-sm btn-p" onclick="setApprFilter('',this)">All</button>
+            <button class="btn btn-sm btn-ghost" onclick="setApprFilter('Pending',this)">Pending</button>
+            <button class="btn btn-sm btn-ghost" onclick="setApprFilter('Approved',this)">Approved</button>
+            <button class="btn btn-sm btn-ghost" onclick="setApprFilter('Rejected',this)">Rejected</button>
+          </div>
         </div>
-
-        <div class="pad-x" id="approvals-list"></div>
+        <div class="px" id="approvals-list"></div>
         <div class="gap"></div>
       </div>
 
-      <!-- ─── ADMIN: REPORTS ─── -->
+      <!-- ══════════════════════════════
+           ADMIN: REPORTS
+      ══════════════════════════════ -->
       <div class="sec" id="sec-admin-reports">
-        <div class="pad">
-          <div class="page-title">Reports</div>
-          <div class="page-sub">Usage analytics and statistics</div>
+        <div class="p">
+          <div class="title">Reports & Analytics</div>
+          <div class="subtitle">Booking statistics and resource usage overview</div>
         </div>
-        <div class="pad-x" id="rpt-stat-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px">
-          <div class="stat-chip"><div class="stat-dot blue"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/></svg></div><div><div class="stat-val" id="rp-total">0</div><div class="stat-lbl">Total</div></div></div>
-          <div class="stat-chip"><div class="stat-dot green"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div><div class="stat-val" id="rp-app">0</div><div class="stat-lbl">Approved</div></div></div>
-          <div class="stat-chip"><div class="stat-dot amber"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div><div class="stat-val" id="rp-pen">0</div><div class="stat-lbl">Pending</div></div></div>
-          <div class="stat-chip"><div class="stat-dot red"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div><div><div class="stat-val" id="rp-rej">0</div><div class="stat-lbl">Rejected</div></div></div>
-        </div>
-        <div id="rpt-two-col">
-          <div>
-            <div class="sec-heading" style="padding-left:0">Bookings by Resource Type</div>
-            <div class="card card-pad"><div id="rp-by-type"></div></div>
-          </div>
-          <div>
-            <div class="sec-heading" style="padding-left:0">Most Booked Resources</div>
-            <div class="card card-pad"><div id="rp-most"></div></div>
-          </div>
-        </div>
+        <div class="px g2 dg4" id="rpt-stats" style="margin-bottom:4px"></div>
+        <div class="sh">Bookings by Resource Type</div>
+        <div class="px"><div class="card card-p" id="rpt-by-type"></div></div>
+        <div class="sh">Most Booked Resources</div>
+        <div class="px"><div class="card card-p" id="rpt-most"></div></div>
         <div class="gap"></div>
       </div>
 
-      <!-- ─── FACULTY: VIEW RESOURCES ─── -->
+      <!-- ══════════════════════════════
+           FACULTY: VIEW RESOURCES
+      ══════════════════════════════ -->
       <div class="sec" id="sec-faculty-resources">
-        <div class="pad">
-          <div class="page-title">Resources</div>
-          <div class="page-sub">Browse available campus resources</div>
+        <div class="p">
+          <div class="title">Campus Resources</div>
+          <div class="subtitle">Browse all available classrooms and facilities</div>
         </div>
-        <div class="pad-x" id="faculty-res-list"></div>
+        <div class="px" id="fac-res-grid"></div>
         <div class="gap"></div>
       </div>
 
-      <!-- ─── FACULTY: BOOK RESOURCE ─── -->
+      <!-- ══════════════════════════════
+           FACULTY: BOOK RESOURCE
+      ══════════════════════════════ -->
       <div class="sec" id="sec-faculty-book">
 
-        <div style="padding:16px 18px 0">
-          <div style="display:flex;align-items:center;margin-bottom:14px">
-            <div class="step-dot active" id="sdot-1" onclick="goStep(1)"><span>1</span></div>
-            <div class="step-line" id="sline-1"></div>
-            <div class="step-dot" id="sdot-2"><span>2</span></div>
-            <div class="step-line" id="sline-2"></div>
-            <div class="step-dot" id="sdot-3"><span>3</span></div>
+        <!-- Step header -->
+        <div class="p" style="padding-bottom:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <span style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)" id="step-label">Step 1 of 3</span>
+            <span class="badge b-blue" id="step-badge">Select Room</span>
           </div>
-          <div id="step-label" style="font-size:0.7rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Step 1 of 3</div>
-          <div id="step-title" style="font-size:1.2rem;font-weight:800;letter-spacing:-0.3px;margin-top:2px">Select Classroom</div>
-          <div id="step-sub" style="font-size:0.8rem;color:var(--muted);margin-top:2px">Pick the room you want to book</div>
+          <div class="step-bar">
+            <div class="step-dot active" id="sd1">1</div>
+            <div class="step-line" id="sl1"></div>
+            <div class="step-dot" id="sd2">2</div>
+            <div class="step-line" id="sl2"></div>
+            <div class="step-dot" id="sd3">3</div>
+          </div>
+          <div style="font-size:1.1rem;font-weight:800;margin-top:10px;letter-spacing:-.3px" id="step-title">Select a Room</div>
+          <div style="font-size:.8rem;color:var(--muted);margin-top:2px" id="step-sub">Pick which room you want to book</div>
         </div>
 
-        <div id="book-alert" style="padding:0 18px;margin-top:10px"></div>
+        <div id="bk-alert" style="padding:0 20px"></div>
 
-        <!-- STEP 1 -->
-        <div id="bk-step-1" class="bk-step" style="padding:16px 18px 0">
-          <div id="room-picker-list"></div>
-          <div style="height:80px"></div>
+        <!-- STEP 1: Room picker -->
+        <div id="bk-s1" class="px" style="padding-bottom:80px">
+          <div id="room-list"></div>
         </div>
 
-        <!-- STEP 2 -->
-        <div id="bk-step-2" class="bk-step" style="display:none;padding:16px 18px 0">
-          <div class="card card-pad" style="margin-bottom:12px">
-            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--blue-light);border-radius:10px;margin-bottom:14px">
-              <div style="width:36px;height:36px;border-radius:10px;background:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                <svg width="18" height="18" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        <!-- STEP 2: Class details -->
+        <div id="bk-s2" class="px" style="display:none;padding-bottom:80px">
+          <div class="card card-p" style="margin-bottom:12px">
+            <div style="display:flex;align-items:center;gap:10px;background:var(--p-light);border-radius:10px;padding:10px 12px;margin-bottom:14px">
+              <div style="width:34px;height:34px;border-radius:10px;background:var(--p);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <svg width="16" height="16" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
               </div>
               <div style="flex:1;min-width:0">
-                <div style="font-size:0.88rem;font-weight:700;color:var(--blue)" id="selected-room-name">—</div>
-                <div style="font-size:0.72rem;color:var(--blue-mid)" id="selected-room-meta">—</div>
+                <div style="font-size:.87rem;font-weight:700;color:var(--p)" id="sel-room-name">—</div>
+                <div style="font-size:.71rem;color:var(--p-mid)" id="sel-room-meta">—</div>
               </div>
-              <button onclick="goStep(1)" style="font-size:0.72rem;font-weight:700;color:var(--blue);background:white;border:none;cursor:pointer;padding:5px 10px;border-radius:7px">Change</button>
+              <button onclick="goStep(1)" style="font-size:.71rem;font-weight:700;color:var(--p);background:white;border:1px solid var(--p-soft);cursor:pointer;padding:5px 10px;border-radius:7px">Change</button>
             </div>
-            <div class="form-field">
+            <div class="ff">
               <label>Subject / Course Name</label>
-              <input type="text" id="bk-subject" placeholder="e.g. Machine Learning, DBMS, Fluid Mechanics"/>
+              <input type="text" id="bk-subject" placeholder="e.g. Machine Learning, DBMS"/>
             </div>
-            <div class="form-2col">
-              <div class="form-field">
+            <div class="f2">
+              <div class="ff">
                 <label>Department</label>
                 <select id="bk-dept">
-                  <option value="">Select department...</option>
-                  <option value="AIML">AI & Machine Learning (AIML)</option>
-                  <option value="DS">Data Science (DS)</option>
-                  <option value="Computer">Computer Engineering</option>
-                  <option value="IT">Information Technology (IT)</option>
-                  <option value="Mechanical">Mechanical Engineering</option>
-                  <option value="Civil">Civil Engineering</option>
+                  <option value="">Select...</option>
+                  <option value="AIML">AIML</option>
+                  <option value="DS">Data Science</option>
+                  <option value="Computer">Computer Engg.</option>
+                  <option value="IT">IT</option>
+                  <option value="Mechanical">Mechanical</option>
+                  <option value="Civil">Civil</option>
                 </select>
               </div>
-              <div class="form-field">
+              <div class="ff">
                 <label>Class / Section</label>
                 <select id="bk-section">
                   <option value="">Select...</option>
@@ -1108,32 +730,32 @@ body {
                 </select>
               </div>
             </div>
-            <div class="form-field" style="margin-bottom:0">
+            <div class="ff mb0">
               <label>Class Type</label>
               <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-                <label class="ct-chip" id="ct-Lecture"><input type="radio" name="ct" value="Lecture" style="display:none" onchange="pickClassType(this)"/><span>📖 Lecture</span></label>
-                <label class="ct-chip" id="ct-Practical"><input type="radio" name="ct" value="Practical" style="display:none" onchange="pickClassType(this)"/><span>🔬 Practical</span></label>
-                <label class="ct-chip" id="ct-Exam"><input type="radio" name="ct" value="Exam" style="display:none" onchange="pickClassType(this)"/><span>📝 Exam</span></label>
-                <label class="ct-chip" id="ct-Seminar"><input type="radio" name="ct" value="Seminar" style="display:none" onchange="pickClassType(this)"/><span>🎙 Seminar</span></label>
-                <label class="ct-chip" id="ct-Meeting"><input type="radio" name="ct" value="Meeting" style="display:none" onchange="pickClassType(this)"/><span>🤝 Meeting</span></label>
-                <label class="ct-chip" id="ct-Other"><input type="radio" name="ct" value="Other" style="display:none" onchange="pickClassType(this)"/><span>📌 Other</span></label>
+                <label class="ct-chip" id="ct-Lecture" onclick="pickCT('Lecture',this)">📖 Lecture</label>
+                <label class="ct-chip" id="ct-Practical" onclick="pickCT('Practical',this)">🔬 Practical</label>
+                <label class="ct-chip" id="ct-Exam" onclick="pickCT('Exam',this)">📝 Exam</label>
+                <label class="ct-chip" id="ct-Seminar" onclick="pickCT('Seminar',this)">🎙 Seminar</label>
+                <label class="ct-chip" id="ct-Meeting" onclick="pickCT('Meeting',this)">🤝 Meeting</label>
+                <label class="ct-chip" id="ct-Other" onclick="pickCT('Other',this)">📌 Other</label>
               </div>
             </div>
           </div>
-          <button class="btn btn-blue btn-full" onclick="goStep(3)" style="margin-bottom:80px">Continue to Schedule →</button>
+          <button class="btn btn-p btn-w" onclick="goStep(3)">Continue to Schedule →</button>
         </div>
 
-        <!-- STEP 3 -->
-        <div id="bk-step-3" class="bk-step" style="display:none;padding:16px 18px 0">
-          <div id="booking-recap-pills" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px"></div>
-          <div class="card card-pad" style="margin-bottom:12px">
-            <div class="form-field">
+        <!-- STEP 3: Schedule -->
+        <div id="bk-s3" class="px" style="display:none;padding-bottom:80px">
+          <div id="recap-pills" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px"></div>
+          <div class="card card-p" style="margin-bottom:12px">
+            <div class="ff">
               <label>Date</label>
-              <input type="date" id="bk-date" onchange="updateAvailability()"/>
+              <input type="date" id="bk-date" onchange="checkAvail()"/>
             </div>
-            <div class="form-field">
+            <div class="ff">
               <label>Quick Time Slots</label>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px" id="slot-grid">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:6px" id="slot-grid">
                 <button class="slot-btn" onclick="pickSlot('08:00','09:00')">8:00–9:00 AM</button>
                 <button class="slot-btn" onclick="pickSlot('09:00','10:00')">9:00–10:00 AM</button>
                 <button class="slot-btn" onclick="pickSlot('10:00','11:00')">10:00–11:00 AM</button>
@@ -1143,101 +765,87 @@ body {
                 <button class="slot-btn" onclick="pickSlot('15:00','16:00')">3:00–4:00 PM</button>
                 <button class="slot-btn" onclick="pickSlot('16:00','17:00')">4:00–5:00 PM</button>
               </div>
-              <div style="font-size:0.7rem;color:var(--muted);text-align:center;margin-bottom:8px">— or pick custom time —</div>
+              <div style="font-size:.68rem;color:var(--muted);text-align:center;margin-bottom:8px">— or enter custom time —</div>
             </div>
-            <div class="form-2col">
-              <div class="form-field"><label>Start Time</label><input type="time" id="bk-start" onchange="highlightSlot()"/></div>
-              <div class="form-field"><label>End Time</label><input type="time" id="bk-end" onchange="highlightSlot()"/></div>
+            <div class="f2">
+              <div class="ff"><label>Start Time</label><input type="time" id="bk-start" oninput="hlSlot()"/></div>
+              <div class="ff"><label>End Time</label><input type="time" id="bk-end" oninput="hlSlot()"/></div>
             </div>
-            <div class="form-field" style="margin-bottom:0">
+            <div class="ff mb0">
               <label>Notes <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
-              <input type="text" id="bk-notes" placeholder="e.g. Need projector, extra chairs..."/>
+              <input type="text" id="bk-notes" placeholder="e.g. Need projector, 40 chairs…"/>
             </div>
           </div>
-          <div class="card card-pad" style="margin-bottom:12px">
-            <div style="font-size:0.8rem;font-weight:700;margin-bottom:10px">📅 Room Availability</div>
-            <div id="avail-list" style="font-size:0.78rem;color:var(--muted)">Select a date above to see existing bookings.</div>
+          <div class="card card-p" style="margin-bottom:12px">
+            <div style="font-size:.8rem;font-weight:700;margin-bottom:8px">📅 Availability for selected date</div>
+            <div id="avail-info" style="font-size:.77rem;color:var(--muted)">Select a date above to check availability.</div>
           </div>
-          <button class="btn btn-blue btn-full" onclick="submitBooking()" style="margin-bottom:80px">
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            Submit Class Booking
+          <button class="btn btn-p btn-w" onclick="submitBooking()">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Submit Booking Request
           </button>
         </div>
 
       </div>
 
-      <!-- ─── FACULTY: MY BOOKINGS ─── -->
+      <!-- ══════════════════════════════
+           FACULTY: MY BOOKINGS
+      ══════════════════════════════ -->
       <div class="sec" id="sec-faculty-mybookings">
-        <div class="pad">
-          <div class="page-title">My Bookings</div>
-          <div class="page-sub">All your booking requests</div>
+        <div class="p">
+          <div class="title">My Bookings</div>
+          <div class="subtitle">All your booking requests</div>
         </div>
-        <div class="pad-x" id="my-stat-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px">
-          <div class="stat-chip"><div class="stat-dot blue"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/></svg></div><div><div class="stat-val" id="my-total">0</div><div class="stat-lbl">Total</div></div></div>
-          <div class="stat-chip"><div class="stat-dot green"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div><div class="stat-val" id="my-app">0</div><div class="stat-lbl">Approved</div></div></div>
-          <div class="stat-chip"><div class="stat-dot amber"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div><div class="stat-val" id="my-pen">0</div><div class="stat-lbl">Pending</div></div></div>
-          <div class="stat-chip"><div class="stat-dot red"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div><div><div class="stat-val" id="my-rej">0</div><div class="stat-lbl">Rejected</div></div></div>
-        </div>
-        <div class="sec-heading">Booking History</div>
-        <div class="pad-x" id="my-bookings-list"></div>
+        <div class="px g2 dg4" id="my-stats" style="margin-bottom:4px"></div>
+        <div class="sh">Booking History</div>
+        <div class="px" id="my-list"></div>
         <div class="gap"></div>
       </div>
 
-      <!-- ─── PROFILE ─── -->
+      <!-- ══════════════════════════════
+           PROFILE
+      ══════════════════════════════ -->
       <div class="sec" id="sec-profile">
-
-        <!-- Hero Banner -->
-        <div class="prf-banner" id="prf-banner">
-          <div class="prf-banner-bg" id="prf-banner-bg"></div>
+        <!-- Banner -->
+        <div class="prf-banner">
+          <div class="prf-banner-bg" id="prf-bg"></div>
           <div class="prf-banner-content">
-            <div class="prf-avatar-wrap">
-              <div class="prf-avatar" id="prf-avatar-display">A</div>
-              <button class="prf-avatar-edit-btn" onclick="toggleColorPicker()" title="Change color">
-                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+            <div class="prf-av-wrap">
+              <div class="prf-av" id="prf-av">A</div>
+              <button class="prf-av-btn" onclick="toggleCP()">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
               </button>
             </div>
-            <div class="prf-hero-info">
-              <div class="prf-hero-name" id="prf-hero-name">User</div>
-              <div class="prf-hero-role" id="prf-hero-role">
-                <span class="prf-role-dot"></span><span id="prf-hero-role-text">Role</span>
-              </div>
-            </div>
-            <button class="prf-edit-toggle-btn" id="prf-edit-toggle" onclick="toggleProfileEdit()">
-              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            <div class="prf-name" id="prf-name-disp">User</div>
+            <div class="prf-role-line"><span class="prf-dot"></span><span id="prf-role-disp">Role</span></div>
+            <button class="prf-edit-btn" id="prf-edit-btn" onclick="toggleProfileEdit()">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               Edit Profile
             </button>
           </div>
-
-          <!-- Color picker palette -->
-          <div class="color-picker-wrap" id="color-picker-wrap" style="display:none">
-            <div class="color-picker-label">Choose avatar color</div>
-            <div class="color-swatches" id="color-swatches"></div>
+          <div id="cp-wrap" style="display:none">
+            <div class="cp-wrap">
+              <div class="cp-label">Choose Avatar Color</div>
+              <div class="cp-swatches" id="cp-swatches"></div>
+            </div>
           </div>
         </div>
 
-        <!-- Stats row -->
-        <div class="prf-stats-row" id="prf-stats-row"></div>
+        <!-- Stats -->
+        <div class="prf-stats" id="prf-stats"></div>
 
-        <!-- EDIT FORM (hidden by default) -->
-        <div id="prf-edit-form" style="display:none">
-          <div class="sec-heading">Edit Profile</div>
-          <div class="pad-x">
-            <div class="card card-pad">
-              <div class="form-field">
-                <label>Full Name</label>
-                <input type="text" id="prf-input-name" placeholder="Enter your full name"/>
-              </div>
-              <div class="form-field">
-                <label>Email Address</label>
-                <input type="email" id="prf-input-email" placeholder="you@college.edu"/>
-              </div>
-              <div class="form-field">
-                <label>Phone Number</label>
-                <input type="tel" id="prf-input-phone" placeholder="+91 98765 43210"/>
-              </div>
-              <div class="form-field">
+        <!-- Edit form -->
+        <div id="prf-form" style="display:none">
+          <div class="sh">Edit Profile</div>
+          <div class="px">
+            <div class="card card-p">
+              <div id="prf-edit-alert"></div>
+              <div class="ff"><label>Full Name</label><input type="text" id="pf-name" placeholder="Your full name"/></div>
+              <div class="ff"><label>Email</label><input type="email" id="pf-email" placeholder="you@college.edu"/></div>
+              <div class="ff"><label>Phone</label><input type="tel" id="pf-phone" placeholder="+91 98765 43210"/></div>
+              <div class="ff">
                 <label>Department</label>
-                <select id="prf-input-dept">
+                <select id="pf-dept">
                   <option value="">Select department...</option>
                   <option value="AIML">AI & Machine Learning (AIML)</option>
                   <option value="DS">Data Science (DS)</option>
@@ -1247,73 +855,52 @@ body {
                   <option value="Civil">Civil Engineering</option>
                 </select>
               </div>
-              <div class="form-field" style="margin-bottom:0">
-                <label>Bio / About</label>
-                <textarea id="prf-input-bio" placeholder="Write something about yourself..." rows="3" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;color:var(--text);resize:none;outline:none;transition:border-color .2s"></textarea>
+              <div class="ff mb0">
+                <label>Bio</label>
+                <textarea id="pf-bio" placeholder="A short bio about yourself…" rows="3"></textarea>
               </div>
             </div>
-            <div style="display:flex;gap:10px;margin-top:12px">
-              <button class="btn btn-blue btn-full" onclick="saveProfile()">
-                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <button class="btn btn-p" style="flex:1" onclick="saveProfile()">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
                 Save Changes
               </button>
-              <button class="btn btn-ghost" onclick="toggleProfileEdit()" style="flex-shrink:0;padding:11px 16px">Cancel</button>
+              <button class="btn btn-ghost" onclick="toggleProfileEdit()">Cancel</button>
             </div>
           </div>
           <div class="gap"></div>
         </div>
 
-        <!-- INFO VIEW (shown by default) -->
-        <div id="prf-info-view">
-          <div class="sec-heading">Personal Info</div>
-          <div class="card pad-x">
-            <div class="list-row">
-              <div class="row-icon blue"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
-              <div class="row-body"><div class="row-sub">Full Name</div><div class="row-title" id="prf-view-name">—</div></div>
-            </div>
-            <div class="list-row">
-              <div class="row-icon green"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg></div>
-              <div class="row-body"><div class="row-sub">Email</div><div class="row-title" id="prf-view-email">—</div></div>
-            </div>
-            <div class="list-row">
-              <div class="row-icon amber"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6.13 6.13l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
-              <div class="row-body"><div class="row-sub">Phone</div><div class="row-title" id="prf-view-phone">—</div></div>
-            </div>
-            <div class="list-row">
-              <div class="row-icon" style="background:var(--blue-light);color:var(--blue)"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>
-              <div class="row-body"><div class="row-sub">Department</div><div class="row-title" id="prf-view-dept">—</div></div>
-            </div>
-            <div class="list-row" id="prf-bio-row" style="display:none">
-              <div class="row-icon" style="background:#f3f0ff;color:#7c3aed"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-              <div class="row-body"><div class="row-sub">Bio</div><div class="row-title" id="prf-view-bio" style="white-space:normal;font-size:0.82rem">—</div></div>
+        <!-- Info view -->
+        <div id="prf-view">
+          <div class="sh">Personal Info</div>
+          <div class="px">
+            <div class="card">
+              <div class="lrow"><div class="lrow-icon li-blue"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div><div class="lrow-body"><div class="lrow-sub">Full Name</div><div class="lrow-title" id="pv-name">Not set</div></div></div>
+              <div class="lrow"><div class="lrow-icon li-green"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg></div><div class="lrow-body"><div class="lrow-sub">Email</div><div class="lrow-title" id="pv-email">Not set</div></div></div>
+              <div class="lrow"><div class="lrow-icon li-amber"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6.13 6.13l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div><div class="lrow-body"><div class="lrow-sub">Phone</div><div class="lrow-title" id="pv-phone">Not set</div></div></div>
+              <div class="lrow"><div class="lrow-icon li-purple"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><div class="lrow-body"><div class="lrow-sub">Department</div><div class="lrow-title" id="pv-dept">Not set</div></div></div>
+              <div class="lrow" id="pv-bio-row" style="display:none"><div class="lrow-icon li-blue"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="lrow-body"><div class="lrow-sub">Bio</div><div class="lrow-title" id="pv-bio" style="white-space:normal;font-size:.82rem">—</div></div></div>
             </div>
           </div>
-
-          <div class="sec-heading">Account</div>
-          <div class="card pad-x">
-            <div class="list-row">
-              <div class="row-icon" style="background:#fdf4ff;color:#a21caf"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-              <div class="row-body"><div class="row-sub">Role</div><div class="row-title" id="prf-view-role">—</div></div>
-            </div>
-            <div class="list-row">
-              <div class="row-icon" style="background:var(--green-bg);color:var(--green)"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-              <div class="row-body"><div class="row-sub">Member since</div><div class="row-title" id="prf-view-since">—</div></div>
+          <div class="sh">Account</div>
+          <div class="px">
+            <div class="card">
+              <div class="lrow"><div class="lrow-icon" style="background:#fdf4ff;color:#a21caf"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><div class="lrow-body"><div class="lrow-sub">Role</div><div class="lrow-title" id="pv-role">—</div></div></div>
+              <div class="lrow"><div class="lrow-icon li-green"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="lrow-body"><div class="lrow-sub">Member Since</div><div class="lrow-title" id="pv-since">—</div></div></div>
             </div>
           </div>
-
-          <div class="sec-heading">App Info</div>
-          <div class="card pad-x">
-            <div class="list-row">
-              <div class="row-icon blue"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
-              <div class="row-body"><div class="row-sub">App Version</div><div class="row-title">Smart Campus v2.0</div></div>
-              <div class="row-end"><span class="badge badge-green">● Live</span></div>
+          <div class="sh">App</div>
+          <div class="px">
+            <div class="card">
+              <div class="lrow"><div class="lrow-icon li-blue"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="lrow-body"><div class="lrow-sub">Version</div><div class="lrow-title">Smart Campus RMS v3.0</div></div><div class="lrow-end"><span class="badge b-green">● Live</span></div></div>
             </div>
           </div>
         </div>
 
         <div class="gap"></div>
-        <div class="pad-x">
-          <button class="btn btn-full" onclick="doLogout()" style="background:var(--red-bg);color:var(--red);font-size:0.88rem;padding:14px;border:1.5px solid #fecaca">
+        <div class="px">
+          <button class="btn btn-danger-soft btn-w" onclick="doLogout()" style="padding:14px;font-size:.88rem">
             <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             Sign Out
           </button>
@@ -1321,917 +908,788 @@ body {
         <div class="gap"></div>
       </div>
 
-    </div><!-- /page-scroll -->
+    </div><!-- /content -->
 
     <!-- BOTTOM NAV -->
     <div id="bottom-nav"></div>
 
-  </div><!-- /main-screen -->
+  </div><!-- /main -->
+</div><!-- /root -->
 
-</div><!-- /main-screen wrapper -->
-</div><!-- /desktop-layout -->
-
-<!-- TOAST -->
 <div id="toast"></div>
 
 <script>
-// ═══════════════════════════════════════
-//  DATA
-// ═══════════════════════════════════════
+'use strict';
+
+/* ──────────────────────────────────────
+   STATE
+────────────────────────────────────── */
 let ROLE = 'admin';
 let USER = '';
+let CUR  = '';
+let HIST = [];
 
 let resources = [
-  { id:1, name:'Computer Lab A', type:'Lab', capacity:40 },
-  { id:2, name:'Seminar Hall 1', type:'Seminar Hall', capacity:120 },
-  { id:3, name:'Classroom 101', type:'Classroom', capacity:60 },
-  { id:4, name:'Conference Room', type:'Conference Room', capacity:20 },
+  {id:1,name:'Computer Lab A',type:'Lab',capacity:40,loc:'A Block, 1st Floor'},
+  {id:2,name:'Seminar Hall 1',type:'Seminar Hall',capacity:120,loc:'Main Building, Ground Floor'},
+  {id:3,name:'Classroom 101',type:'Classroom',capacity:60,loc:'B Block, Ground Floor'},
+  {id:4,name:'Conference Room',type:'Conference Room',capacity:20,loc:'Admin Block, 2nd Floor'},
+  {id:5,name:'Digital Library',type:'Library',capacity:80,loc:'Library Block'},
 ];
-let resId = 5;
+let RID = 6;
 
 let bookings = [
-  { id:1, faculty:'Dr. Sharma', resource:'Computer Lab A', date:'2025-03-20', start:'09:00', end:'11:00', purpose:'Practical Exam', status:'Approved' },
-  { id:2, faculty:'Prof. Mehta', resource:'Seminar Hall 1', date:'2025-03-21', start:'14:00', end:'16:00', purpose:'Guest Lecture', status:'Pending' },
-  { id:3, faculty:'Dr. Joshi', resource:'Classroom 101', date:'2025-03-22', start:'10:00', end:'12:00', purpose:'Extra Lecture', status:'Rejected' },
+  {id:1,faculty:'Dr. Sharma',resource:'Computer Lab A',date:'2025-03-20',start:'09:00',end:'11:00',subject:'Data Structures',dept:'CS',section:'TY-A',classType:'Practical',notes:'',status:'Approved'},
+  {id:2,faculty:'Prof. Mehta',resource:'Seminar Hall 1',date:'2025-03-21',start:'14:00',end:'16:00',subject:'AI Workshop',dept:'AIML',section:'BE-A',classType:'Seminar',notes:'Need projector',status:'Pending'},
+  {id:3,faculty:'Dr. Joshi',resource:'Classroom 101',date:'2025-03-22',start:'10:00',end:'12:00',subject:'Engineering Maths',dept:'Civil',section:'SY-B',classType:'Lecture',notes:'',status:'Rejected'},
 ];
-let bookId = 4;
+let BID = 4;
 
-const ADMIN_TABS = [
-  { id:'admin-dashboard', label:'Home', icon:'home' },
-  { id:'admin-resources', label:'Resources', icon:'layers' },
-  { id:'admin-approvals', label:'Requests', icon:'inbox' },
-  { id:'admin-reports', label:'Reports', icon:'bar-chart' },
-  { id:'profile', label:'Profile', icon:'user' },
-];
-const FACULTY_TABS = [
-  { id:'faculty-resources', label:'Resources', icon:'layers' },
-  { id:'faculty-book', label:'Book', icon:'plus-square' },
-  { id:'faculty-mybookings', label:'My Bookings', icon:'bookmark' },
-  { id:'profile', label:'Profile', icon:'user' },
+let profileData = {};
+let avColor = 0;
+let profileEditing = false;
+let apprFilter = '';
+let bkRoom = null;
+let bkCT = '';
+let bkStep = 1;
+
+const AV_COLORS = [
+  {bg:'linear-gradient(135deg,#1d4ed8,#1e3a8a)',solid:'#1d4ed8',name:'Ocean'},
+  {bg:'linear-gradient(135deg,#7c3aed,#4c1d95)',solid:'#7c3aed',name:'Violet'},
+  {bg:'linear-gradient(135deg,#16a34a,#14532d)',solid:'#16a34a',name:'Forest'},
+  {bg:'linear-gradient(135deg,#dc2626,#7f1d1d)',solid:'#dc2626',name:'Crimson'},
+  {bg:'linear-gradient(135deg,#d97706,#78350f)',solid:'#d97706',name:'Amber'},
+  {bg:'linear-gradient(135deg,#0891b2,#164e63)',solid:'#0891b2',name:'Cyan'},
+  {bg:'linear-gradient(135deg,#db2777,#831843)',solid:'#db2777',name:'Rose'},
+  {bg:'linear-gradient(135deg,#0f172a,#334155)',solid:'#0f172a',name:'Slate'},
 ];
 
-const ICONS = {
-  home: `<svg width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
-  layers: `<svg width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>`,
-  inbox: `<svg width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>`,
-  'bar-chart': `<svg width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
-  user: `<svg width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`,
-  'plus-square': `<svg width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>`,
-  bookmark: `<svg width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`,
+const ADMIN_NAV = [
+  {id:'admin-dashboard', label:'Dashboard',   icon:'home'},
+  {id:'admin-resources', label:'Resources',   icon:'layers'},
+  {id:'admin-approvals', label:'Requests',    icon:'inbox'},
+  {id:'admin-reports',   label:'Reports',     icon:'bar'},
+  {id:'profile',         label:'Profile',     icon:'user'},
+];
+const FAC_NAV = [
+  {id:'faculty-resources',   label:'Resources',   icon:'layers'},
+  {id:'faculty-book',        label:'Book',         icon:'cal'},
+  {id:'faculty-mybookings',  label:'My Bookings',  icon:'book'},
+  {id:'profile',             label:'Profile',      icon:'user'},
+];
+
+const SVGS = {
+  home:`<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+  layers:`<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>`,
+  inbox:`<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>`,
+  bar:`<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
+  user:`<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`,
+  cal:`<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>`,
+  book:`<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`,
 };
 
-let currentSection = '';
-let sectionHistory = [];
-
-// ═══════════════════════════════════════
-//  AUTH
-// ═══════════════════════════════════════
-function setRole(role, btn) {
-  ROLE = role;
-  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('login-err').innerHTML = '';
-}
-
-function doLogin() {
-  const u = document.getElementById('l-user').value.trim().toLowerCase();
-  const p = document.getElementById('l-pass').value.trim();
-  if (!u || !p) { showLoginErr('Please enter your username and password.'); return; }
-
-  // Check credentials regardless of selected role tab — auto-detect role
-  if (u === 'admin' && p === 'admin123') {
-    USER = 'Administrator'; ROLE = 'admin';
-    document.querySelectorAll('.role-btn').forEach((b,i) => b.classList.toggle('active', i===0));
-    launch('admin');
-  } else if (u === 'faculty' && p === 'faculty123') {
-    USER = 'Dr. Faculty'; ROLE = 'faculty';
-    document.querySelectorAll('.role-btn').forEach((b,i) => b.classList.toggle('active', i===1));
-    launch('faculty');
-  } else {
-    showLoginErr('❌ Invalid credentials.<br><small style="opacity:0.8">Admin: admin / admin123 &nbsp;|&nbsp; Faculty: faculty / faculty123</small>');
-  }
-}
-
-function showLoginErr(msg) {
-  document.getElementById('login-err').innerHTML = `<div class="alert alert-red" style="margin:0 0 14px">${msg}</div>`;
-}
-
-function launch(role) {
-  ROLE = role;
-  profileData = {}; // reset so initProfileData re-initialises with new USER
-  document.getElementById('login-screen').classList.remove('active');
-  document.getElementById('main-screen').classList.add('active');
-  document.getElementById('header-avatar').textContent = USER[0];
-  buildNav(role);
-  buildDesktopSidebar(role);
-  const first = role==='admin' ? 'admin-dashboard' : 'faculty-resources';
-  sectionHistory = [];
-  navigate(first);
-  setGreeting();
-}
-
-function doLogout() {
-  document.getElementById('main-screen').classList.remove('active');
-  document.getElementById('login-screen').classList.add('active');
-  document.getElementById('l-user').value='';
-  document.getElementById('l-pass').value='';
-  document.getElementById('login-err').innerHTML='';
-  // sidebar visibility handled by CSS
-}
-
-// ═══════════════════════════════════════
-//  NAVIGATION
-// ═══════════════════════════════════════
-const TITLES = {
-  'admin-dashboard':'Dashboard','admin-resources':'Resources',
-  'admin-approvals':'Requests','admin-reports':'Reports',
+const PAGE_TITLES = {
+  'admin-dashboard':'Dashboard','admin-resources':'Manage Resources',
+  'admin-approvals':'Booking Requests','admin-reports':'Reports',
   'faculty-resources':'Resources','faculty-book':'Book Resource',
   'faculty-mybookings':'My Bookings','profile':'Profile',
 };
 
-function buildNav(role) {
-  const tabs = role==='admin' ? ADMIN_TABS : FACULTY_TABS;
-  const nav = document.getElementById('bottom-nav');
-  nav.innerHTML = tabs.map(t => `
-    <button class="nav-tab" id="nav-${t.id}" onclick="navigate('${t.id}')">
-      <div class="nav-icon-wrap">${ICONS[t.icon]}</div>
-      <span>${t.label}</span>
-    </button>`).join('');
+/* ──────────────────────────────────────
+   AUTH
+────────────────────────────────────── */
+function setRole(r) {
+  ROLE = r;
+  document.getElementById('rt-admin').classList.toggle('on', r==='admin');
+  document.getElementById('rt-faculty').classList.toggle('on', r==='faculty');
 }
 
-function buildDesktopSidebar(role) {
-  const tabs = role==='admin' ? ADMIN_TABS : FACULTY_TABS;
-  document.getElementById('ds-avatar').textContent = USER[0];
-  document.getElementById('ds-name').textContent = USER;
-  document.getElementById('ds-role').textContent = role==='admin' ? 'Administrator' : 'Faculty Member';
-  document.getElementById('ds-nav').innerHTML = `<div class="ds-nav-label">Main Menu</div>` +
-    tabs.map(t => `<button class="ds-nav-item" id="ds-${t.id}" onclick="navigate('${t.id}')">${ICONS[t.icon]} ${t.label}</button>`).join('');
-  // visibility controlled by CSS media query — no JS needed
+function doLogin() {
+  const u = (document.getElementById('l-user').value||'').trim().toLowerCase();
+  const p = (document.getElementById('l-pass').value||'').trim();
+  clearErr('login-err');
+  if (!u||!p){showErr('login-err','Please enter both username and password.');return;}
+  if (u==='admin'&&p==='admin123'){USER='Administrator';launch('admin');}
+  else if (u==='faculty'&&p==='faculty123'){USER='Dr. Faculty';launch('faculty');}
+  else showErr('login-err','❌ Invalid credentials. Check the hint above.');
 }
 
-function navigate(id, pushHistory=true) {
-  if (pushHistory && currentSection && currentSection !== id) {
-    sectionHistory.push(currentSection);
-  }
-  currentSection = id;
-
-  // Deactivate all
-  document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.ds-nav-item').forEach(t => t.classList.remove('active'));
-
-  // Activate
-  const sec = document.getElementById('sec-' + id);
-  if (sec) sec.classList.add('active');
-  const tab = document.getElementById('nav-' + id);
-  if (tab) tab.classList.add('active');
-  const dsTab = document.getElementById('ds-' + id);
-  if (dsTab) dsTab.classList.add('active');
-
-  document.getElementById('header-title').textContent = TITLES[id] || 'App';
-  document.getElementById('page-scroll').scrollTop = 0;
-  document.getElementById('global-alert-wrap').innerHTML = '';
-
-  // Back button
-  const isRoot = (ROLE==='admin' ? ADMIN_TABS : FACULTY_TABS).some(t => t.id === id);
-  const backBtn = document.getElementById('header-back');
-  if (isRoot) { backBtn.classList.remove('show'); sectionHistory = [id]; }
-  else backBtn.classList.add('show');
-
-  renderSection(id);
+function launch(role) {
+  ROLE=role; profileData={};
+  document.getElementById('s-login').classList.remove('on');
+  document.getElementById('root').style.display='flex';
+  buildSidebar(); buildBottomNav();
+  updateUserUI();
+  go(role==='admin'?'admin-dashboard':'faculty-resources');
+  startClock();
 }
 
-function goBack() {
-  if (sectionHistory.length > 1) {
-    sectionHistory.pop();
-    navigate(sectionHistory[sectionHistory.length-1], false);
-  }
+function doLogout() {
+  document.getElementById('root').style.display='none';
+  document.getElementById('s-login').classList.add('on');
+  document.getElementById('l-user').value='';
+  document.getElementById('l-pass').value='';
+  clearErr('login-err');
+  CUR=''; HIST=[];
 }
 
-function renderSection(id) {
-  if (id==='admin-dashboard') renderDashboard();
-  else if (id==='admin-resources') renderResources();
-  else if (id==='admin-approvals') renderApprovals();
-  else if (id==='admin-reports') renderReports();
-  else if (id==='faculty-resources') renderFacultyResources();
-  else if (id==='faculty-book') renderBookForm();
-  else if (id==='faculty-mybookings') renderMyBookings();
-  else if (id==='profile') renderProfile();
+function updateUserUI() {
+  const c = AV_COLORS[avColor];
+  const init = (profileData.name||USER).charAt(0).toUpperCase();
+  document.getElementById('sb-av').textContent = init;
+  document.getElementById('sb-av').style.background = c.solid;
+  document.getElementById('sb-name').textContent = profileData.name||USER;
+  document.getElementById('sb-role').textContent = ROLE==='admin'?'Administrator':'Faculty Member';
+  document.getElementById('hdr-av').textContent = init;
+  document.getElementById('hdr-av').style.background = c.solid;
 }
 
-// ═══════════════════════════════════════
-//  ADMIN DASHBOARD
-// ═══════════════════════════════════════
-function renderDashboard() {
-  document.getElementById('s-resources').textContent = resources.length;
-  document.getElementById('s-approved').textContent = bookings.filter(b=>b.status==='Approved').length;
-  document.getElementById('s-pending').textContent = bookings.filter(b=>b.status==='Pending').length;
-  document.getElementById('s-rejected').textContent = bookings.filter(b=>b.status==='Rejected').length;
-
-  const bEl = document.getElementById('dash-bookings-list');
-  const recent = [...bookings].reverse().slice(0,5);
-  bEl.innerHTML = recent.length ? recent.map(b => `
-    <div class="list-row">
-      <div class="row-icon ${statusColor(b.status)}">${statusIcon(b.status)}</div>
-      <div class="row-body">
-        <div class="row-title">${b.resource}</div>
-        <div class="row-sub">${b.faculty} · ${fmtDate(b.date)}</div>
-      </div>
-      <div class="row-end">${badgeHtml(b.status)}</div>
-    </div>`).join('') :
-    `<div class="empty"><p>No booking requests yet.</p></div>`;
-
-  const rEl = document.getElementById('dash-res-list');
-  rEl.innerHTML = resources.slice(0,5).map(r => `
-    <div class="list-row">
-      <div class="row-icon blue">${resTypeIcon(r.type)}</div>
-      <div class="row-body">
-        <div class="row-title">${r.name}</div>
-        <div class="row-sub">${r.type} · Cap: ${r.capacity}</div>
-      </div>
-    </div>`).join('') ||
-    `<div class="empty"><p>No resources added.</p></div>`;
+/* ──────────────────────────────────────
+   SIDEBAR & NAV BUILD
+────────────────────────────────────── */
+function buildSidebar() {
+  const nav = ROLE==='admin'?ADMIN_NAV:FAC_NAV;
+  const pending = bookings.filter(b=>b.status==='Pending').length;
+  document.getElementById('sb-nav').innerHTML =
+    '<div class="sb-label">Menu</div>' +
+    nav.map(n=>`<button class="sb-item" id="si-${n.id}" onclick="go('${n.id}')">${SVGS[n.icon]} ${n.label}${n.id==='admin-approvals'&&pending?`<span class="sb-badge">${pending}</span>`:''}</button>`).join('');
 }
 
-// ═══════════════════════════════════════
-//  ADMIN RESOURCES
-// ═══════════════════════════════════════
-function renderResources() {
-  document.getElementById('res-count').textContent = resources.length;
-  const el = document.getElementById('res-list');
-  el.innerHTML = resources.length ? resources.map(r => `
-    <div class="list-row">
-      <div class="row-icon blue">${resTypeIcon(r.type)}</div>
-      <div class="row-body">
-        <div class="row-title">${r.name}</div>
-        <div class="row-sub">${r.type} · ${r.capacity} seats</div>
-      </div>
-      <div class="row-end" style="display:flex;flex-direction:column;gap:5px;align-items:flex-end">
-        <button class="btn btn-ghost btn-sm" onclick="editResource(${r.id})" style="padding:6px 10px">✏️ Edit</button>
-        <button class="btn btn-sm" onclick="deleteResource(${r.id})" style="background:var(--red-bg);color:var(--red);padding:6px 10px">🗑 Del</button>
-      </div>
-    </div>`).join('') :
-    `<div class="empty"><svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/></svg><p>No resources added yet</p></div>`;
+function buildBottomNav() {
+  const nav = ROLE==='admin'?ADMIN_NAV:FAC_NAV;
+  document.getElementById('bottom-nav').innerHTML =
+    nav.map(n=>`<button class="bn-tab" id="bn-${n.id}" onclick="go('${n.id}')"><div class="bn-pip">${SVGS[n.icon]}</div><span>${n.label}</span></button>`).join('');
 }
 
-function saveResource() {
-  const name = document.getElementById('r-name').value.trim();
-  const type = document.getElementById('r-type').value;
-  const cap = parseInt(document.getElementById('r-cap').value);
-  const editId = document.getElementById('r-edit-id').value;
-  if (!name || !type || !cap || cap < 1) { showInlineAlert('res-alert','red','Please fill all fields correctly.'); return; }
-  if (editId) {
-    const i = resources.findIndex(r=>r.id==editId);
-    if (i>-1) resources[i] = { id:parseInt(editId), name, type, capacity:cap };
-    toast(`"${name}" updated ✓`);
-    cancelEditRes();
-  } else {
-    resources.push({ id:resId++, name, type, capacity:cap });
-    toast(`"${name}" added ✓`);
-  }
-  clearInlineAlert('res-alert');
-  document.getElementById('r-name').value='';
-  document.getElementById('r-type').value='';
-  document.getElementById('r-cap').value='';
-  renderResources();
+/* ──────────────────────────────────────
+   NAVIGATION
+────────────────────────────────────── */
+function go(id, push=true) {
+  if(push && CUR && CUR!==id) HIST.push(CUR);
+  CUR = id;
+
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.sb-item').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.bn-tab').forEach(s=>s.classList.remove('on'));
+
+  const sec = document.getElementById('sec-'+id);
+  if(sec) sec.classList.add('on');
+  const si = document.getElementById('si-'+id);
+  if(si) si.classList.add('on');
+  const bn = document.getElementById('bn-'+id);
+  if(bn) bn.classList.add('on');
+
+  document.getElementById('hdr-title').textContent = PAGE_TITLES[id]||'App';
+  document.getElementById('content').scrollTo({top:0,behavior:'instant'});
+  clearEl('g-alert');
+
+  // back button: show only if not root tab
+  const roots = (ROLE==='admin'?ADMIN_NAV:FAC_NAV).map(n=>n.id);
+  const back = document.getElementById('hdr-back');
+  if(roots.includes(id)){back.classList.remove('on');HIST=[];}
+  else back.classList.add('on');
+
+  closeSidebar();
+  render(id);
 }
 
-function editResource(id) {
-  const r = resources.find(r=>r.id===id);
-  if (!r) return;
-  document.getElementById('r-name').value = r.name;
-  document.getElementById('r-type').value = r.type;
-  document.getElementById('r-cap').value = r.capacity;
-  document.getElementById('r-edit-id').value = r.id;
-  document.getElementById('res-form-label').textContent = '✏️ Edit Resource';
-  document.getElementById('r-btn-lbl').textContent = 'Update';
-  document.getElementById('r-cancel-btn').style.display = 'inline-flex';
-  document.getElementById('page-scroll').scrollTo({ top:0, behavior:'smooth' });
+function goBack(){
+  if(HIST.length){go(HIST[HIST.length-1],false);HIST.pop();}
 }
 
-function cancelEditRes() {
-  document.getElementById('r-name').value='';
-  document.getElementById('r-type').value='';
-  document.getElementById('r-cap').value='';
-  document.getElementById('r-edit-id').value='';
-  document.getElementById('res-form-label').textContent='➕ Add New Resource';
-  document.getElementById('r-btn-lbl').textContent='Save';
-  document.getElementById('r-cancel-btn').style.display='none';
+function render(id){
+  const map={
+    'admin-dashboard':renderDash,
+    'admin-resources':renderRes,
+    'admin-approvals':renderApprovals,
+    'admin-reports':renderReports,
+    'faculty-resources':renderFacRes,
+    'faculty-book':renderBook,
+    'faculty-mybookings':renderMyBk,
+    'profile':renderProfile,
+  };
+  if(map[id]) map[id]();
 }
 
-function deleteResource(id) {
-  const r = resources.find(r=>r.id===id);
-  if (!r || !confirm(`Delete "${r.name}"?`)) return;
-  resources = resources.filter(r=>r.id!==id);
-  toast(`"${r.name}" deleted`);
-  renderResources();
+/* ──────────────────────────────────────
+   SIDEBAR OPEN/CLOSE
+────────────────────────────────────── */
+function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('overlay').style.display='block';}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').style.display='none';}
+
+/* ──────────────────────────────────────
+   ADMIN: DASHBOARD
+────────────────────────────────────── */
+function renderDash(){
+  // Greeting
+  const h=new Date().getHours();
+  document.getElementById('greeting').textContent=(h<12?'Good morning':h<17?'Good afternoon':'Good evening')+' 👋';
+
+  // Stats
+  const app=bookings.filter(b=>b.status==='Approved').length;
+  const pen=bookings.filter(b=>b.status==='Pending').length;
+  const rej=bookings.filter(b=>b.status==='Rejected').length;
+  document.getElementById('dash-stats').innerHTML=`
+    ${statChip('si-blue',monitorSvg(),resources.length,'Resources')}
+    ${statChip('si-green',checkSvg(),app,'Approved')}
+    ${statChip('si-amber',clockSvg(),pen,'Pending')}
+    ${statChip('si-red',xSvg(),rej,'Rejected')}`;
+
+  // Recent bookings
+  const recent=[...bookings].reverse().slice(0,6);
+  document.getElementById('dash-recent').innerHTML=recent.length
+    ? recent.map(b=>`<div class="lrow">
+        <div class="lrow-icon l${statusColor(b.status)}">${statusSvg(b.status)}</div>
+        <div class="lrow-body"><div class="lrow-title">${b.resource}</div><div class="lrow-sub">${b.faculty} · ${fmtDate(b.date)}</div></div>
+        <div class="lrow-end">${badge(b.status)}</div></div>`).join('')
+    : empty('No booking requests yet.');
+
+  // Resources list
+  document.getElementById('dash-res-list').innerHTML=resources.slice(0,5).map(r=>`
+    <div class="lrow">
+      <div class="lrow-icon li-blue">${resIcon(r.type)}</div>
+      <div class="lrow-body"><div class="lrow-title">${r.name}</div><div class="lrow-sub">${r.type} · ${r.loc||'—'}</div></div>
+      <div class="lrow-end"><span class="tag">${r.capacity}</span></div>
+    </div>`).join('') || empty('No resources added.');
+
+  buildSidebar(); // refresh pending badge
 }
 
-// ═══════════════════════════════════════
-//  ADMIN APPROVALS
-// ═══════════════════════════════════════
-function renderApprovals() {
-  const filter = document.getElementById('filter-status').value;
-  let data = filter ? bookings.filter(b=>b.status===filter) : bookings;
-  const el = document.getElementById('approvals-list');
-  el.innerHTML = data.length ? [...data].reverse().map(b => `
-    <div class="card card-pad" style="margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
-        <div>
-          <div style="font-size:0.9rem;font-weight:700">${b.resource}</div>
-          <div style="font-size:0.75rem;color:var(--muted);margin-top:2px">${b.faculty}</div>
-        </div>
-        ${badgeHtml(b.status)}
-      </div>
-      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:6px">
-        ${b.section?`<span style="background:var(--bg2);padding:2px 7px;border-radius:6px;font-size:0.7rem;font-weight:600">👥 ${b.section}</span>`:''}
-        ${b.classType?`<span style="background:var(--bg2);padding:2px 7px;border-radius:6px;font-size:0.7rem;font-weight:600">📌 ${b.classType}</span>`:''}
-        ${b.subject?`<span style="background:var(--blue-light);color:var(--blue);padding:2px 7px;border-radius:6px;font-size:0.7rem;font-weight:600">📚 ${b.subject}</span>`:''}
-      </div>
-      <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:0.75rem;color:var(--muted);margin-bottom:${b.status==='Pending'?'10':'0'}px">
-        <span>📅 ${fmtDate(b.date)}</span>
-        <span>🕐 ${b.start} – ${b.end}</span>
-      </div>
-      ${b.status==='Pending' ? `
-        <div class="approval-actions">
-          <button class="btn btn-green btn-sm btn-full" onclick="approveBooking(${b.id})">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Approve
-          </button>
-          <button class="btn btn-red btn-sm btn-full" onclick="rejectBooking(${b.id})">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Reject
-          </button>
-        </div>` : ''}
-    </div>`).join('') :
-    `<div class="empty"><svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg><p>No requests found.</p></div>`;
-}
-
-function approveBooking(id) {
-  const b = bookings.find(b=>b.id===id);
-  if (!b) return;
-  b.status = 'Approved';
-  toast(`Booking approved ✓`);
-  renderApprovals();
-}
-function rejectBooking(id) {
-  const b = bookings.find(b=>b.id===id);
-  if (!b) return;
-  b.status = 'Rejected';
-  toast(`Booking rejected`);
-  renderApprovals();
-}
-
-// ═══════════════════════════════════════
-//  ADMIN REPORTS
-// ═══════════════════════════════════════
-function renderReports() {
-  document.getElementById('rp-total').textContent = bookings.length;
-  document.getElementById('rp-app').textContent = bookings.filter(b=>b.status==='Approved').length;
-  document.getElementById('rp-pen').textContent = bookings.filter(b=>b.status==='Pending').length;
-  document.getElementById('rp-rej').textContent = bookings.filter(b=>b.status==='Rejected').length;
-
-  const typeMap = {};
-  bookings.forEach(b => {
-    const r = resources.find(r=>r.name===b.resource);
-    const t = r ? r.type : 'Unknown';
-    typeMap[t] = (typeMap[t]||0) + 1;
-  });
-  const maxT = Math.max(...Object.values(typeMap), 1);
-  document.getElementById('rp-by-type').innerHTML = Object.entries(typeMap).map(([t,c]) => `
-    <div style="margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:5px">
-        <span style="font-weight:600">${t}</span><span style="color:var(--muted)">${c} booking${c!==1?'s':''}</span>
-      </div>
-      <div class="prog-bar"><div class="prog-fill" style="width:${Math.round(c/maxT*100)}%"></div></div>
-    </div>`).join('') || '<p style="color:var(--muted);font-size:0.82rem">No data yet.</p>';
-
-  const resMap = {};
-  bookings.forEach(b => { resMap[b.resource]=(resMap[b.resource]||0)+1; });
-  const sorted = Object.entries(resMap).sort((a,b)=>b[1]-a[1]);
-  const maxR = Math.max(...sorted.map(s=>s[1]), 1);
-  document.getElementById('rp-most').innerHTML = sorted.map(([name,c]) => `
-    <div style="margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:5px">
-        <span style="font-weight:600">${name}</span><span style="color:var(--muted)">${c}×</span>
-      </div>
-      <div class="prog-bar"><div class="prog-fill green" style="width:${Math.round(c/maxR*100)}%"></div></div>
-    </div>`).join('') || '<p style="color:var(--muted);font-size:0.82rem">No data yet.</p>';
-}
-
-// ═══════════════════════════════════════
-//  FACULTY: RESOURCES
-// ═══════════════════════════════════════
-function renderFacultyResources() {
-  const el = document.getElementById('faculty-res-list');
-  el.innerHTML = resources.length ? resources.map(r => {
-    const booked = bookings.filter(b=>b.resource===r.name&&b.status==='Approved').length;
-    return `
-      <div class="res-card">
-        <div class="res-card-top">
-          <div class="res-card-icon">${resTypeIcon(r.type)}</div>
-          <div>
-            <h3>${r.name}</h3>
-            <span class="tag" style="margin-top:3px;display:inline-flex">${r.type}</span>
+/* ──────────────────────────────────────
+   ADMIN: MANAGE RESOURCES
+────────────────────────────────────── */
+function renderRes(){
+  document.getElementById('res-count-badge').textContent=resources.length+' item'+(resources.length!==1?'s':'');
+  document.getElementById('res-list').innerHTML=resources.length
+    ? resources.map((r,i)=>`
+        <div class="lrow">
+          <div class="lrow-icon li-blue">${resIcon(r.type)}</div>
+          <div class="lrow-body">
+            <div class="lrow-title">${r.name}</div>
+            <div class="lrow-sub">${r.type} · Cap: ${r.capacity}${r.loc?(' · '+r.loc):''}</div>
           </div>
-        </div>
-        <div class="res-card-meta">
-          <div class="res-meta-item"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><strong>${r.capacity}</strong> seats</div>
-          <div class="res-meta-item"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/></svg><strong>${booked}</strong> active</div>
-        </div>
-        <button class="btn btn-blue btn-full btn-sm" onclick="navigate('faculty-book');preselect('${r.name}')">
-          Book This Resource →
-        </button>
-      </div>`;
-  }).join('') : `<div class="empty"><p>No resources available.</p></div>`;
+          <div class="lrow-end" style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="editRes(${r.id})">✏️</button>
+            <button class="btn btn-danger-soft btn-sm" onclick="delRes(${r.id})">🗑</button>
+          </div>
+        </div>`).join('')
+    : empty('No resources yet. Add one above.');
 }
 
-function preselect(name) {
-  // Pre-select room in the wizard by name
-  const r = resources.find(r => r.name===name);
-  if (r) {
-    bkSelectedRoom = r;
-    setTimeout(() => { renderRoomPicker(); }, 80);
+function saveResource(){
+  const name=(document.getElementById('r-name').value||'').trim();
+  const type=document.getElementById('r-type').value;
+  const cap=parseInt(document.getElementById('r-cap').value)||0;
+  const loc=(document.getElementById('r-loc').value||'').trim();
+  const eid=document.getElementById('r-eid').value;
+  clearEl('res-alert');
+  if(!name||!type||cap<1){showInline('res-alert','red','Please fill in name, type, and a valid capacity.');return;}
+  if(eid){
+    const i=resources.findIndex(r=>r.id==eid);
+    if(i>-1) resources[i]={id:+eid,name,type,capacity:cap,loc};
+    toast('Resource updated ✓');cancelEditRes();
+  } else {
+    if(resources.find(r=>r.name.toLowerCase()===name.toLowerCase())){showInline('res-alert','amber','A resource with this name already exists.');return;}
+    resources.push({id:RID++,name,type,capacity:cap,loc});
+    toast(`"${name}" added ✓`);
+    document.getElementById('r-name').value='';
+    document.getElementById('r-type').value='';
+    document.getElementById('r-cap').value='';
+    document.getElementById('r-loc').value='';
   }
+  renderRes();
 }
 
-// ═══════════════════════════════════════
-//  FACULTY: BOOK
-// ═══════════════════════════════════════
-// ─── BOOKING WIZARD STATE ───
-let bkSelectedRoom = null;
-let bkClassType = '';
-let bkCurrentStep = 1;
-
-function renderBookForm() {
-  bkCurrentStep = 1;
-  bkSelectedRoom = null;
-  bkClassType = '';
-  renderRoomPicker();
-  goStep(1, true);
-  document.getElementById('bk-date').min = new Date().toISOString().split('T')[0];
+function editRes(id){
+  const r=resources.find(r=>r.id===id);if(!r)return;
+  document.getElementById('r-name').value=r.name;
+  document.getElementById('r-type').value=r.type;
+  document.getElementById('r-cap').value=r.capacity;
+  document.getElementById('r-loc').value=r.loc||'';
+  document.getElementById('r-eid').value=r.id;
+  document.getElementById('res-form-head').textContent='✏️ Edit Resource';
+  document.getElementById('r-btn-lbl').textContent='Update Resource';
+  document.getElementById('r-cancel').style.display='inline-flex';
+  document.getElementById('content').scrollTo({top:0,behavior:'smooth'});
 }
 
-function renderRoomPicker() {
-  const list = document.getElementById('room-picker-list');
-  if (!resources.length) {
-    list.innerHTML = '<div class="empty"><p>No resources available. Ask admin to add resources.</p></div>';
-    return;
+function cancelEditRes(){
+  ['r-name','r-type','r-cap','r-loc'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('r-eid').value='';
+  document.getElementById('res-form-head').textContent='➕ Add New Resource';
+  document.getElementById('r-btn-lbl').textContent='Save Resource';
+  document.getElementById('r-cancel').style.display='none';
+  clearEl('res-alert');
+}
+
+function delRes(id){
+  const r=resources.find(r=>r.id===id);
+  if(!r||!confirm(`Delete "${r.name}"?\nThis cannot be undone.`))return;
+  resources=resources.filter(r=>r.id!==id);
+  toast(`"${r.name}" deleted`);renderRes();
+}
+
+/* ──────────────────────────────────────
+   ADMIN: APPROVALS
+────────────────────────────────────── */
+function setApprFilter(f, btn){
+  apprFilter=f;
+  document.querySelectorAll('#filter-tabs .btn').forEach(b=>{
+    b.className='btn btn-sm btn-ghost';
+  });
+  if(btn){btn.className='btn btn-sm btn-p';}
+  renderApprovals();
+}
+
+function renderApprovals(){
+  const data=apprFilter?bookings.filter(b=>b.status===apprFilter):[...bookings].reverse();
+  const el=document.getElementById('approvals-list');
+  if(!data.length){el.innerHTML=`<div class="card card-p">${empty('No requests match this filter.')}</div>`;return;}
+  el.innerHTML=data.map(b=>`
+    <div class="appr-card">
+      <div class="appr-head">
+        <div>
+          <div class="appr-resource">${b.resource}</div>
+          <div class="appr-faculty">${b.faculty}${b.dept?' · '+b.dept:''}</div>
+        </div>
+        ${badge(b.status)}
+      </div>
+      <div class="appr-meta">
+        <span>📅 ${fmtDate(b.date)}</span>
+        <span>🕐 ${b.start}–${b.end}</span>
+        ${b.subject?`<span>📚 ${b.subject}</span>`:''}
+        ${b.section?`<span>👥 ${b.section}</span>`:''}
+        ${b.classType?`<span>📌 ${b.classType}</span>`:''}
+      </div>
+      ${b.notes?`<div style="font-size:.73rem;color:var(--muted);margin-bottom:10px">💬 ${b.notes}</div>`:''}
+      ${b.status==='Pending'?`
+        <div class="appr-actions">
+          <button class="btn btn-g btn-sm" style="flex:1" onclick="approveB(${b.id})">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Approve
+          </button>
+          <button class="btn btn-r btn-sm" style="flex:1" onclick="rejectB(${b.id})">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Reject
+          </button>
+        </div>`:''}
+    </div>`).join('');
+}
+
+function approveB(id){const b=bookings.find(b=>b.id===id);if(!b)return;b.status='Approved';toast('Booking approved ✓');renderApprovals();buildSidebar();}
+function rejectB(id){const b=bookings.find(b=>b.id===id);if(!b)return;b.status='Rejected';toast('Booking rejected');renderApprovals();buildSidebar();}
+
+/* ──────────────────────────────────────
+   ADMIN: REPORTS
+────────────────────────────────────── */
+function renderReports(){
+  const app=bookings.filter(b=>b.status==='Approved').length;
+  const pen=bookings.filter(b=>b.status==='Pending').length;
+  const rej=bookings.filter(b=>b.status==='Rejected').length;
+  document.getElementById('rpt-stats').innerHTML=`
+    ${statChip('si-blue',monitorSvg(),bookings.length,'Total')}
+    ${statChip('si-green',checkSvg(),app,'Approved')}
+    ${statChip('si-amber',clockSvg(),pen,'Pending')}
+    ${statChip('si-red',xSvg(),rej,'Rejected')}`;
+
+  // By type
+  const tMap={};
+  bookings.forEach(b=>{const r=resources.find(r=>r.name===b.resource);const t=r?r.type:'Other';tMap[t]=(tMap[t]||0)+1;});
+  const maxT=Math.max(...Object.values(tMap),1);
+  document.getElementById('rpt-by-type').innerHTML=Object.keys(tMap).length
+    ? Object.entries(tMap).sort((a,b)=>b[1]-a[1]).map(([t,c])=>`
+        <div style="margin-bottom:13px">
+          <div style="display:flex;justify-content:space-between;font-size:.81rem;margin-bottom:5px">
+            <span style="font-weight:600">${t}</span><span style="color:var(--muted)">${c} booking${c!==1?'s':''}</span>
+          </div>
+          <div class="prog-wrap"><div class="prog-fill pf-blue" style="width:${Math.round(c/maxT*100)}%"></div></div>
+        </div>`).join('')
+    : '<p style="color:var(--muted);font-size:.82rem">No data yet.</p>';
+
+  // Most booked
+  const rMap={};
+  bookings.forEach(b=>{rMap[b.resource]=(rMap[b.resource]||0)+1;});
+  const sorted=Object.entries(rMap).sort((a,b)=>b[1]-a[1]);
+  const maxR=Math.max(...sorted.map(s=>s[1]),1);
+  document.getElementById('rpt-most').innerHTML=sorted.length
+    ? sorted.map(([name,c])=>`
+        <div style="margin-bottom:13px">
+          <div style="display:flex;justify-content:space-between;font-size:.81rem;margin-bottom:5px">
+            <span style="font-weight:600">${name}</span><span style="color:var(--muted)">${c}×</span>
+          </div>
+          <div class="prog-wrap"><div class="prog-fill pf-green" style="width:${Math.round(c/maxR*100)}%"></div></div>
+        </div>`).join('')
+    : '<p style="color:var(--muted);font-size:.82rem">No data yet.</p>';
+}
+
+/* ──────────────────────────────────────
+   FACULTY: VIEW RESOURCES
+────────────────────────────────────── */
+function renderFacRes(){
+  document.getElementById('fac-res-grid').innerHTML=resources.length
+    ? resources.map(r=>{
+        const cnt=bookings.filter(b=>b.resource===r.name&&b.status==='Approved').length;
+        return `<div class="res-card">
+          <div class="res-card-head">
+            <div class="res-card-icon">${resIcon(r.type)}</div>
+            <div><div class="res-card-name">${r.name}</div><span class="tag" style="margin-top:4px">${r.type}</span></div>
+          </div>
+          <div class="res-card-meta">
+            <div class="res-meta"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><strong>${r.capacity}</strong> seats</div>
+            <div class="res-meta"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/></svg><strong>${r.loc||'—'}</strong></div>
+            <div class="res-meta"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/></svg><strong>${cnt}</strong> booked</div>
+          </div>
+          <button class="btn btn-p btn-w" onclick="go('faculty-book');preselect(${r.id})">
+            Book This Room →
+          </button>
+        </div>`;
+      }).join('')
+    : `<div class="card card-p">${empty('No resources available.')}</div>`;
+}
+
+/* ──────────────────────────────────────
+   FACULTY: BOOK RESOURCE
+────────────────────────────────────── */
+function renderBook(){
+  bkRoom=null; bkCT=''; bkStep=1;
+  // reset all fields
+  ['bk-subject','bk-date','bk-start','bk-end','bk-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['bk-dept','bk-section'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.querySelectorAll('.ct-chip').forEach(c=>c.classList.remove('on'));
+  document.querySelectorAll('.slot-btn').forEach(s=>s.classList.remove('on','booked'));
+  clearEl('bk-alert');clearEl('avail-info');
+  goStep(1,true);
+}
+
+function preselect(id){
+  const r=resources.find(r=>r.id===id);
+  if(r){bkRoom=r;setTimeout(()=>goStep(2),80);}
+}
+
+function goStep(n, force){
+  bkStep=n;
+  ['bk-s1','bk-s2','bk-s3'].forEach((id,i)=>{
+    document.getElementById(id).style.display=(i+1===n)?'block':'none';
+  });
+  const labels=['','Select a Room','Class Details','Pick a Schedule'];
+  const subs=['','Choose the room you want to book','Enter subject, department & class info','Set the date and time slot'];
+  const badges=['','Select Room','Class Info','Schedule'];
+  document.getElementById('step-label').textContent=`Step ${n} of 3`;
+  document.getElementById('step-title').textContent=labels[n];
+  document.getElementById('step-sub').textContent=subs[n];
+  document.getElementById('step-badge').textContent=badges[n];
+
+  // Update step dots
+  for(let i=1;i<=3;i++){
+    const dot=document.getElementById('sd'+i);
+    dot.className='step-dot'+(i<n?' done':i===n?' active':'');
+    dot.innerHTML=i<n?'<svg width="12" height="12" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>':i;
   }
-  list.innerHTML = resources.map(r => {
-    const todayBookings = bookings.filter(b => b.resource===r.name && b.status!=='Rejected');
-    const isBusy = todayBookings.length > 0;
-    const isSelected = bkSelectedRoom && bkSelectedRoom.id === r.id;
-    return `
-    <div class="room-pick-card ${isSelected?'selected':''}" onclick="selectRoom(${r.id})" id="rpc-${r.id}">
-      <div class="room-pick-icon">${resTypeIcon(r.type)}</div>
+  for(let i=1;i<=2;i++){
+    document.getElementById('sl'+i).className='step-line'+(i<n?' done':'');
+  }
+
+  if(n===1) renderRoomPicker();
+  if(n===2 && bkRoom){
+    document.getElementById('sel-room-name').textContent=bkRoom.name;
+    document.getElementById('sel-room-meta').textContent=`${bkRoom.type} · Capacity: ${bkRoom.capacity}`;
+  }
+  if(n===3) buildRecapPills();
+  document.getElementById('content').scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderRoomPicker(){
+  document.getElementById('room-list').innerHTML=resources.map(r=>{
+    const on=bkRoom&&bkRoom.id===r.id?'on':'';
+    return `<div class="room-card ${on}" onclick="selectRoom(${r.id})">
+      <div class="room-icon">${resIcon(r.type)}</div>
       <div style="flex:1;min-width:0">
-        <div class="room-pick-name">${r.name}</div>
-        <div class="room-pick-meta">${r.type} · ${r.capacity} seats</div>
-        <span class="avail-badge ${isBusy?'busy':'free'}" style="margin-top:4px;display:inline-flex">${isBusy?'⚠ Has bookings':'✓ Available'}</span>
+        <div class="room-name">${r.name}</div>
+        <div class="room-info">${r.type} · ${r.capacity} seats${r.loc?' · '+r.loc:''}</div>
       </div>
-      <div class="room-pick-check">
-        ${isSelected?'<svg width="12" height="12" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>':''}
-      </div>
+      <div class="room-check">${on?'<svg width="12" height="12" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
     </div>`;
   }).join('');
 }
 
-function selectRoom(id) {
-  bkSelectedRoom = resources.find(r => r.id===id);
-  renderRoomPicker();
-  // Auto-advance after short delay
-  setTimeout(() => goStep(2), 200);
+function selectRoom(id){
+  bkRoom=resources.find(r=>r.id===id);
+  goStep(2);
 }
 
-function goStep(step, force) {
-  if (step===2 && !bkSelectedRoom && !force) {
-    showInlineAlert('book-alert','red','Please select a room first.'); return;
-  }
-  if (step===3 && !force) {
-    const subj = document.getElementById('bk-subject').value.trim();
-    const dept = document.getElementById('bk-dept').value;
-    const sec  = document.getElementById('bk-section').value;
-    if (!subj || !dept || !sec || !bkClassType) {
-      showInlineAlert('book-alert','red','Please fill in Subject, Department, Section and Class Type.'); return;
-    }
-    buildRecapPills();
-    updateAvailability();
-  }
-
-  bkCurrentStep = step;
-  clearInlineAlert('book-alert');
-
-  // Show/hide step panels
-  ['1','2','3'].forEach(n => {
-    const el = document.getElementById('bk-step-'+n);
-    if (el) el.style.display = n==step ? 'block' : 'none';
-  });
-
-  // Update step dots
-  const labels = ['','Select Classroom','Class Details','Schedule & Time'];
-  const subs   = ['','Pick the room you want to book','Enter subject and class info','Choose date and time slot'];
-  document.getElementById('step-label').textContent = `Step ${step} of 3`;
-  document.getElementById('step-title').textContent = labels[step];
-  document.getElementById('step-sub').textContent = subs[step];
-
-  ['1','2','3'].forEach((n,i) => {
-    const dot = document.getElementById('sdot-'+n);
-    if (!dot) return;
-    dot.classList.toggle('done', i+1 < step);
-    dot.classList.toggle('active', i+1 == step);
-    dot.innerHTML = i+1 < step
-      ? '<svg width="13" height="13" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>'
-      : `<span>${n}</span>`;
-  });
-  ['1','2'].forEach((n,i) => {
-    const line = document.getElementById('sline-'+n);
-    if (line) line.classList.toggle('done', i+1 < step);
-  });
-
-  // Populate room info on step 2
-  if (step===2 && bkSelectedRoom) {
-    document.getElementById('selected-room-name').textContent = bkSelectedRoom.name;
-    document.getElementById('selected-room-meta').textContent = `${bkSelectedRoom.type} · Capacity: ${bkSelectedRoom.capacity}`;
-  }
-
-  document.getElementById('page-scroll').scrollTo({top:0, behavior:'smooth'});
+function pickCT(val, el){
+  bkCT=val;
+  document.querySelectorAll('.ct-chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
 }
 
-function pickClassType(input) {
-  bkClassType = input.value;
-  document.querySelectorAll('.ct-chip').forEach(c => c.classList.remove('selected'));
-  const lbl = document.getElementById('ct-'+input.value);
-  if (lbl) lbl.classList.add('selected');
+function buildRecapPills(){
+  const subj=(document.getElementById('bk-subject').value||'').trim();
+  const dept=document.getElementById('bk-dept').value;
+  const sec=document.getElementById('bk-section').value;
+  document.getElementById('recap-pills').innerHTML=[
+    bkRoom?`🏫 ${bkRoom.name}`:'',
+    subj?`📚 ${subj}`:'',
+    dept?`🏛 ${dept}`:'',
+    sec?`👥 ${sec}`:'',
+    bkCT?`📌 ${bkCT}`:'',
+  ].filter(Boolean).map(t=>`<span class="recap-pill">${t}</span>`).join('');
 }
 
-function buildRecapPills() {
-  const pills = document.getElementById('booking-recap-pills');
-  if (!pills) return;
-  const subj = document.getElementById('bk-subject').value.trim();
-  const dept = document.getElementById('bk-dept').value;
-  const sec  = document.getElementById('bk-section').value;
-  pills.innerHTML = [
-    bkSelectedRoom ? `🏫 ${bkSelectedRoom.name}` : '',
-    subj ? `📚 ${subj}` : '',
-    dept ? `🏛 ${dept}` : '',
-    sec  ? `👥 ${sec}` : '',
-    bkClassType ? `📌 ${bkClassType}` : '',
-  ].filter(Boolean).map(t => `<span class="recap-pill">${t}</span>`).join('');
+function pickSlot(s,e){
+  document.getElementById('bk-start').value=s;
+  document.getElementById('bk-end').value=e;
+  hlSlot();
 }
 
-function pickSlot(start, end) {
-  document.getElementById('bk-start').value = start;
-  document.getElementById('bk-end').value   = end;
-  highlightSlot(start, end);
-}
-
-function highlightSlot(s, e) {
-  const start = s || document.getElementById('bk-start').value;
-  const end   = e || document.getElementById('bk-end').value;
-  document.querySelectorAll('.slot-btn').forEach(btn => {
-    btn.classList.remove('selected');
-    const txt = btn.textContent;
-    // match by onclick attribute
-    const onclick = btn.getAttribute('onclick') || '';
-    if (onclick.includes(`'${start}'`) && onclick.includes(`'${end}'`)) {
-      btn.classList.add('selected');
-    }
+function hlSlot(){
+  const s=document.getElementById('bk-start').value;
+  const e=document.getElementById('bk-end').value;
+  document.querySelectorAll('.slot-btn').forEach(b=>{
+    const oc=b.getAttribute('onclick')||'';
+    b.classList.toggle('on',oc.includes(`'${s}'`)&&oc.includes(`'${e}'`)&&!b.classList.contains('booked'));
   });
 }
 
-function updateAvailability() {
-  const date = document.getElementById('bk-date').value;
-  const el = document.getElementById('avail-list');
-  if (!el) return;
-  if (!date || !bkSelectedRoom) { el.innerHTML = '<span>Select a date to check availability.</span>'; return; }
-
-  const dayBookings = bookings.filter(b =>
-    b.resource === bkSelectedRoom.name && b.date === date && b.status !== 'Rejected'
-  );
-
-  // Mark slot buttons as booked
-  document.querySelectorAll('.slot-btn').forEach(btn => {
-    btn.classList.remove('booked');
-    const onclick = btn.getAttribute('onclick') || '';
-    const m = onclick.match(/'(\d\d:\d\d)','(\d\d:\d\d)'/);
-    if (m) {
-      const [,s,e] = m;
-      const conflict = dayBookings.find(b => !(e<=b.start || s>=b.end));
-      if (conflict) btn.classList.add('booked');
-    }
+function checkAvail(){
+  const date=document.getElementById('bk-date').value;
+  const el=document.getElementById('avail-info');
+  if(!date||!bkRoom){el.innerHTML='<span style="color:var(--muted)">Select a date to check availability.</span>';return;}
+  const dayBk=bookings.filter(b=>b.resource===bkRoom.name&&b.date===date&&b.status!=='Rejected');
+  // Mark booked slots
+  document.querySelectorAll('.slot-btn').forEach(b=>{
+    b.classList.remove('booked','on');
+    const oc=b.getAttribute('onclick')||'';
+    const m=oc.match(/'(\d\d:\d\d)','(\d\d:\d\d)'/);
+    if(m){const[,s,e]=m;if(dayBk.find(bk=>!(e<=bk.start||s>=bk.end)))b.classList.add('booked');}
   });
-
-  if (!dayBookings.length) {
-    el.innerHTML = '<div style="color:var(--green);font-weight:600">✓ No bookings on this date — fully available!</div>';
-    return;
-  }
-  el.innerHTML = dayBookings.map(b => `
-    <div class="avail-row">
-      <span class="avail-time">${b.start} – ${b.end}</span>
-      <span style="color:var(--text)">${b.faculty}</span>
-      <span class="badge ${b.status==='Approved'?'badge-green':'badge-amber'}" style="margin-left:auto">${b.status}</span>
-    </div>`).join('');
+  if(!dayBk.length){el.innerHTML='<span style="color:var(--green);font-weight:600">✓ Fully available on this date!</span>';return;}
+  el.innerHTML=dayBk.map(b=>`<div class="avail-row"><span class="avail-time">${b.start}–${b.end}</span><span>${b.faculty}</span><span style="margin-left:auto">${badge(b.status)}</span></div>`).join('');
 }
 
-function submitBooking() {
-  const date  = document.getElementById('bk-date').value;
-  const start = document.getElementById('bk-start').value;
-  const end   = document.getElementById('bk-end').value;
-  const notes = document.getElementById('bk-notes').value.trim();
-  const subj  = document.getElementById('bk-subject').value.trim();
-  const dept  = document.getElementById('bk-dept').value;
-  const sec   = document.getElementById('bk-section').value;
-
-  clearInlineAlert('book-alert');
-
-  if (!bkSelectedRoom) { showInlineAlert('book-alert','red','No room selected. Go back to Step 1.'); return; }
-  if (!date||!start||!end) { showInlineAlert('book-alert','red','Please select a date and time.'); return; }
-  if (end<=start) { showInlineAlert('book-alert','red','End time must be after start time.'); return; }
-
-  const conflict = bookings.find(b =>
-    b.resource===bkSelectedRoom.name && b.date===date && b.status!=='Rejected' &&
-    !(end<=b.start || start>=b.end)
-  );
-  if (conflict) {
-    showInlineAlert('book-alert','amber',`⚠️ Time conflict! ${bkSelectedRoom.name} is already booked ${fmtDate(date)} from ${conflict.start}–${conflict.end}. Please pick a different slot.`);
-    return;
-  }
-
-  const purpose = [subj, dept, sec, bkClassType].filter(Boolean).join(' · ');
-  bookings.push({
-    id:bookId++, faculty:USER,
-    resource:bkSelectedRoom.name, date, start, end,
-    purpose: purpose || 'Class booking',
-    subject:subj, dept, section:sec, classType:bkClassType, notes,
-    status:'Pending'
-  });
-
-  toast(`✓ "${bkSelectedRoom.name}" booking submitted!`);
-
-  // Reset wizard
-  bkSelectedRoom=null; bkClassType=''; bkCurrentStep=1;
-  ['bk-subject','bk-date','bk-start','bk-end','bk-notes'].forEach(id => { const e=document.getElementById(id); if(e) e.value=''; });
-  const deptEl=document.getElementById('bk-dept'); if(deptEl) deptEl.value='';
-  const secEl=document.getElementById('bk-section'); if(secEl) secEl.value='';
-  document.querySelectorAll('[name="ct"]').forEach(r=>r.checked=false);
-  document.querySelectorAll('.ct-chip').forEach(c=>c.classList.remove('selected'));
-  renderRoomPicker();
-  goStep(1, true);
-  showInlineAlert('book-alert','green','✓ Class booking submitted! Admin will review and approve your request.');
+function submitBooking(){
+  const date=document.getElementById('bk-date').value;
+  const start=document.getElementById('bk-start').value;
+  const end=document.getElementById('bk-end').value;
+  const notes=(document.getElementById('bk-notes').value||'').trim();
+  const subj=(document.getElementById('bk-subject').value||'').trim();
+  const dept=document.getElementById('bk-dept').value;
+  const sec=document.getElementById('bk-section').value;
+  clearEl('bk-alert');
+  if(!bkRoom){showInline('bk-alert','red','Please select a room first (Step 1).');return;}
+  if(!date||!start||!end){showInline('bk-alert','red','Please select a date and time.');return;}
+  if(end<=start){showInline('bk-alert','red','End time must be after start time.');return;}
+  const clash=bookings.find(b=>b.resource===bkRoom.name&&b.date===date&&b.status!=='Rejected'&&!(end<=b.start||start>=b.end));
+  if(clash){showInline('bk-alert','amber',`⚠️ Time conflict! ${bkRoom.name} is already booked ${fmtDate(date)} from ${clash.start}–${clash.end}.`);return;}
+  bookings.push({id:BID++,faculty:USER,resource:bkRoom.name,date,start,end,subject:subj,dept,section:sec,classType:bkCT,notes,status:'Pending'});
+  toast(`✓ Booking request submitted for "${bkRoom.name}"!`);
+  renderBook();
+  showInline('bk-alert','green',`✅ Request submitted for "${bkRoom.name}" on ${fmtDate(date)} (${start}–${end}). Awaiting admin approval.`);
+  buildSidebar();
 }
 
-// ═══════════════════════════════════════
-//  FACULTY: MY BOOKINGS
-// ═══════════════════════════════════════
-function renderMyBookings() {
-  const mine = bookings.filter(b=>b.faculty===USER);
-  document.getElementById('my-total').textContent = mine.length;
-  document.getElementById('my-app').textContent = mine.filter(b=>b.status==='Approved').length;
-  document.getElementById('my-pen').textContent = mine.filter(b=>b.status==='Pending').length;
-  document.getElementById('my-rej').textContent = mine.filter(b=>b.status==='Rejected').length;
+/* ──────────────────────────────────────
+   FACULTY: MY BOOKINGS
+────────────────────────────────────── */
+function renderMyBk(){
+  const mine=bookings.filter(b=>b.faculty===USER);
+  const app=mine.filter(b=>b.status==='Approved').length;
+  const pen=mine.filter(b=>b.status==='Pending').length;
+  const rej=mine.filter(b=>b.status==='Rejected').length;
+  document.getElementById('my-stats').innerHTML=`
+    ${statChip('si-blue',monitorSvg(),mine.length,'Total')}
+    ${statChip('si-green',checkSvg(),app,'Approved')}
+    ${statChip('si-amber',clockSvg(),pen,'Pending')}
+    ${statChip('si-red',xSvg(),rej,'Rejected')}`;
 
-  const el = document.getElementById('my-bookings-list');
-  el.innerHTML = mine.length ? [...mine].reverse().map(b => `
-    <div class="card card-pad" style="margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
-        <div style="flex:1;min-width:0">
-          <div style="font-size:0.9rem;font-weight:700">${b.resource}</div>
-          ${b.subject ? `<div style="font-size:0.8rem;font-weight:600;color:var(--blue);margin-top:1px">📚 ${b.subject}</div>` : ''}
-          <div style="font-size:0.72rem;color:var(--muted);margin-top:2px">${b.purpose}</div>
-        </div>
-        ${badgeHtml(b.status)}
-      </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:0.72rem;color:var(--muted);margin-bottom:4px">
-        ${b.section ? `<span style="background:var(--bg2);padding:2px 7px;border-radius:6px;font-weight:600;color:var(--text)">👥 ${b.section}</span>` : ''}
-        ${b.classType ? `<span style="background:var(--bg2);padding:2px 7px;border-radius:6px;font-weight:600;color:var(--text)">📌 ${b.classType}</span>` : ''}
-      </div>
-      <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:0.72rem;color:var(--muted)">
-        <span>📅 ${fmtDate(b.date)}</span>
-        <span>🕐 ${b.start} – ${b.end}</span>
-      </div>
-      ${b.notes ? `<div style="font-size:0.72rem;color:var(--muted);margin-top:5px">💬 ${b.notes}</div>` : ''}
-      ${b.status==='Pending' ? `<button class="btn btn-sm" onclick="cancelMyBooking(${b.id})" style="background:var(--red-bg);color:var(--red);margin-top:10px">Cancel Request</button>` : ''}
-    </div>`).join('') :
-    `<div class="empty" style="padding:32px 24px"><svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><p>No bookings yet. Book a resource to get started!</p></div>`;
+  document.getElementById('my-list').innerHTML=mine.length
+    ? [...mine].reverse().map(b=>`
+        <div class="appr-card">
+          <div class="appr-head">
+            <div style="flex:1;min-width:0">
+              <div class="appr-resource">${b.resource}</div>
+              ${b.subject?`<div style="font-size:.78rem;font-weight:600;color:var(--p);margin-top:1px">📚 ${b.subject}</div>`:''}
+            </div>
+            ${badge(b.status)}
+          </div>
+          <div class="appr-meta">
+            <span>📅 ${fmtDate(b.date)}</span>
+            <span>🕐 ${b.start}–${b.end}</span>
+            ${b.section?`<span>👥 ${b.section}</span>`:''}
+            ${b.classType?`<span>📌 ${b.classType}</span>`:''}
+          </div>
+          ${b.notes?`<div style="font-size:.72rem;color:var(--muted);margin-bottom:8px">💬 ${b.notes}</div>`:''}
+          ${b.status==='Pending'?`<button class="btn btn-danger-soft btn-sm" onclick="cancelMyBk(${b.id})">Cancel Request</button>`:''}
+        </div>`).join('')
+    : `<div class="card card-p">${empty('No bookings yet. Go to "Book Resource" to get started!')}</div>`;
 }
 
-function cancelMyBooking(id) {
-  const b = bookings.find(b=>b.id===id);
-  if (!b || !confirm('Cancel this booking?')) return;
-  bookings = bookings.filter(b=>b.id!==id);
-  toast('Booking cancelled');
-  renderMyBookings();
+function cancelMyBk(id){
+  const b=bookings.find(b=>b.id===id);
+  if(!b||!confirm('Cancel this booking request?'))return;
+  bookings=bookings.filter(b=>b.id!==id);
+  toast('Booking cancelled');renderMyBk();buildSidebar();
 }
 
-// ═══════════════════════════════════════
-//  PROFILE
-// ═══════════════════════════════════════
-const AVATAR_COLORS = [
-  { bg: 'linear-gradient(135deg,#1a56db,#1e3a8a)', solid: '#1a56db', name: 'Ocean' },
-  { bg: 'linear-gradient(135deg,#7c3aed,#4c1d95)', solid: '#7c3aed', name: 'Violet' },
-  { bg: 'linear-gradient(135deg,#059669,#064e3b)', solid: '#059669', name: 'Forest' },
-  { bg: 'linear-gradient(135deg,#dc2626,#7f1d1d)', solid: '#dc2626', name: 'Crimson' },
-  { bg: 'linear-gradient(135deg,#d97706,#78350f)', solid: '#d97706', name: 'Amber' },
-  { bg: 'linear-gradient(135deg,#0891b2,#164e63)', solid: '#0891b2', name: 'Cyan' },
-  { bg: 'linear-gradient(135deg,#db2777,#831843)', solid: '#db2777', name: 'Rose' },
-  { bg: 'linear-gradient(135deg,#0f172a,#334155)', solid: '#0f172a', name: 'Slate' },
-];
-
-let profileData = {};
-let avatarColorIdx = 0;
-let profileEditMode = false;
-
-function initProfileData() {
-  if (!profileData.name) {
-    profileData = {
-      name: USER,
-      email: ROLE === 'admin' ? 'admin@smartcampus.edu' : 'faculty@smartcampus.edu',
-      phone: '',
-      dept: '',
-      bio: '',
-      since: new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }),
+/* ──────────────────────────────────────
+   PROFILE
+────────────────────────────────────── */
+function initProfile(){
+  if(!profileData.name){
+    profileData={
+      name:USER,
+      email:ROLE==='admin'?'admin@smartcampus.edu':'faculty@smartcampus.edu',
+      phone:'',dept:'',bio:'',
+      since:new Date().toLocaleDateString('en-IN',{month:'long',year:'numeric'})
     };
-    avatarColorIdx = 0;
   }
 }
 
-function renderProfile() {
-  initProfileData();
+function renderProfile(){
+  initProfile();
+  const c=AV_COLORS[avColor];
+  const init=(profileData.name||USER).charAt(0).toUpperCase();
 
-  // Avatar & banner color
-  const color = AVATAR_COLORS[avatarColorIdx];
-  const bannerBg = document.getElementById('prf-banner-bg');
-  const avatarEl = document.getElementById('prf-avatar-display');
-  if (bannerBg) bannerBg.style.background = color.bg;
-  if (avatarEl) {
-    avatarEl.textContent = profileData.name.charAt(0).toUpperCase();
-    avatarEl.style.background = 'rgba(255,255,255,0.18)';
-  }
+  // Banner
+  document.getElementById('prf-bg').style.background=c.bg;
+  document.getElementById('prf-av').textContent=init;
+  document.getElementById('prf-name-disp').textContent=profileData.name||USER;
+  document.getElementById('prf-role-disp').textContent=ROLE==='admin'?'Administrator':'Faculty Member';
 
-  // Hero text
-  const heroName = document.getElementById('prf-hero-name');
-  const heroRole = document.getElementById('prf-hero-role-text');
-  if (heroName) heroName.textContent = profileData.name;
-  if (heroRole) heroRole.textContent = ROLE === 'admin' ? 'Administrator' : 'Faculty Member';
-
-  // Stats row
-  const mine = bookings.filter(b => b.faculty === USER);
-  const statsRow = document.getElementById('prf-stats-row');
-  if (statsRow) statsRow.innerHTML = `
-    <div class="prf-stat"><div class="prf-stat-val">${mine.length}</div><div class="prf-stat-lbl">Bookings</div></div>
-    <div class="prf-stat"><div class="prf-stat-val">${mine.filter(b=>b.status==='Approved').length}</div><div class="prf-stat-lbl">Approved</div></div>
-    <div class="prf-stat"><div class="prf-stat-val">${resources.length}</div><div class="prf-stat-lbl">Resources</div></div>`;
+  // Stats
+  const mine=bookings.filter(b=>b.faculty===USER);
+  document.getElementById('prf-stats').innerHTML=`
+    <div class="prf-stat"><div class="prf-sv">${mine.length}</div><div class="prf-sl">Bookings</div></div>
+    <div class="prf-stat"><div class="prf-sv">${mine.filter(b=>b.status==='Approved').length}</div><div class="prf-sl">Approved</div></div>
+    <div class="prf-stat"><div class="prf-sv">${resources.length}</div><div class="prf-sl">Resources</div></div>`;
 
   // Info view
-  const set = (id, val, fallback='Not set') => {
-    const el = document.getElementById(id);
-    if (el) { el.textContent = val || fallback; el.style.color = val ? '' : 'var(--muted)'; }
-  };
-  set('prf-view-name', profileData.name);
-  set('prf-view-email', profileData.email);
-  set('prf-view-phone', profileData.phone);
-  set('prf-view-dept', profileData.dept);
-  set('prf-view-bio', profileData.bio);
-  set('prf-view-role', ROLE === 'admin' ? '🛡 Administrator' : '🎓 Faculty Member');
-  set('prf-view-since', profileData.since);
-
-  const bioRow = document.getElementById('prf-bio-row');
-  if (bioRow) bioRow.style.display = profileData.bio ? '' : 'none';
+  const sv=(id,v)=>{const e=document.getElementById(id);if(e){e.textContent=v||'Not set';e.style.color=v?'':'var(--muted)';}};
+  sv('pv-name',profileData.name);sv('pv-email',profileData.email);
+  sv('pv-phone',profileData.phone);sv('pv-dept',profileData.dept);
+  sv('pv-bio',profileData.bio);
+  sv('pv-role',ROLE==='admin'?'🛡 Administrator':'🎓 Faculty Member');
+  sv('pv-since',profileData.since);
+  const bioRow=document.getElementById('pv-bio-row');
+  if(bioRow)bioRow.style.display=profileData.bio?'':'none';
 
   // Color swatches
-  const sw = document.getElementById('color-swatches');
-  if (sw) sw.innerHTML = AVATAR_COLORS.map((c, i) => `
-    <div class="color-swatch ${i===avatarColorIdx?'active':''}"
-      style="background:${c.bg}"
-      onclick="pickAvatarColor(${i})" title="${c.name}">
-    </div>`).join('');
+  document.getElementById('cp-swatches').innerHTML=AV_COLORS.map((cl,i)=>`
+    <div class="cp-swatch${i===avColor?' on':''}" style="background:${cl.bg}" onclick="pickColor(${i})" title="${cl.name}"></div>`).join('');
 
-  // header avatar
-  const hdr = document.getElementById('header-avatar');
-  if (hdr) { hdr.textContent = profileData.name.charAt(0).toUpperCase(); hdr.style.background = color.solid; }
+  updateUserUI();
 }
 
-function pickAvatarColor(idx) {
-  avatarColorIdx = idx;
-  renderProfile();
-  toast(`Avatar color changed to ${AVATAR_COLORS[idx].name} ✓`);
+function pickColor(i){avColor=i;renderProfile();toast(`Color: ${AV_COLORS[i].name} ✓`);}
+
+function toggleCP(){
+  const w=document.getElementById('cp-wrap');
+  w.style.display=w.style.display==='none'?'block':'none';
 }
 
-function toggleColorPicker() {
-  const wrap = document.getElementById('color-picker-wrap');
-  if (!wrap) return;
-  const isVisible = wrap.style.display !== 'none';
-  wrap.style.display = isVisible ? 'none' : 'block';
-}
-
-function toggleProfileEdit() {
-  profileEditMode = !profileEditMode;
-  const form = document.getElementById('prf-edit-form');
-  const view = document.getElementById('prf-info-view');
-  const btn  = document.getElementById('prf-edit-toggle');
-  if (!form || !view || !btn) return;
-
-  if (profileEditMode) {
-    // Pre-fill form
-    const setVal = (id, val) => { const e=document.getElementById(id); if(e) e.value=val||''; };
-    setVal('prf-input-name', profileData.name);
-    setVal('prf-input-email', profileData.email);
-    setVal('prf-input-phone', profileData.phone);
-    setVal('prf-input-dept', profileData.dept);
-    setVal('prf-input-bio', profileData.bio);
-    form.style.display = '';
-    view.style.display = 'none';
-    btn.innerHTML = `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Cancel`;
-    btn.classList.add('editing');
-    document.getElementById('color-picker-wrap').style.display = 'none';
-    document.getElementById('page-scroll').scrollTo({ top: 0, behavior: 'smooth' });
+function toggleProfileEdit(){
+  profileEditing=!profileEditing;
+  const form=document.getElementById('prf-form');
+  const view=document.getElementById('prf-view');
+  const btn=document.getElementById('prf-edit-btn');
+  if(profileEditing){
+    initProfile();
+    const sv=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v||'';};
+    sv('pf-name',profileData.name);sv('pf-email',profileData.email);
+    sv('pf-phone',profileData.phone);sv('pf-dept',profileData.dept);sv('pf-bio',profileData.bio);
+    form.style.display='';view.style.display='none';
+    btn.textContent='✕ Cancel';btn.classList.add('editing');
+    document.getElementById('cp-wrap').style.display='none';
+    document.getElementById('content').scrollTo({top:0,behavior:'smooth'});
   } else {
-    form.style.display = 'none';
-    view.style.display = '';
-    btn.innerHTML = `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Profile`;
+    form.style.display='none';view.style.display='';
+    btn.innerHTML='<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Profile';
     btn.classList.remove('editing');
+    clearEl('prf-edit-alert');
   }
 }
 
-function saveProfile() {
-  const name  = document.getElementById('prf-input-name').value.trim();
-  const email = document.getElementById('prf-input-email').value.trim();
-  const phone = document.getElementById('prf-input-phone').value.trim();
-  const dept  = document.getElementById('prf-input-dept').value;
-  const bio   = document.getElementById('prf-input-bio').value.trim();
-
-  if (!name) { toast('❌ Name cannot be empty'); return; }
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('❌ Enter a valid email'); return; }
-
-  profileData = { ...profileData, name, email, phone, dept, bio };
-  USER = name; // update display name
-
-  profileEditMode = true; // trick toggleProfileEdit to switch back to view
-  toggleProfileEdit();
+function saveProfile(){
+  const name=(document.getElementById('pf-name').value||'').trim();
+  const email=(document.getElementById('pf-email').value||'').trim();
+  const phone=(document.getElementById('pf-phone').value||'').trim();
+  const dept=document.getElementById('pf-dept').value;
+  const bio=(document.getElementById('pf-bio').value||'').trim();
+  clearEl('prf-edit-alert');
+  if(!name){showInline('prf-edit-alert','red','Name cannot be empty.');return;}
+  if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showInline('prf-edit-alert','red','Enter a valid email address.');return;}
+  profileData={...profileData,name,email,phone,dept,bio};
+  USER=name;
+  profileEditing=true; toggleProfileEdit(); // flip back to view
   renderProfile();
-  toast('✓ Profile saved successfully!');
+  toast('✓ Profile saved!');
 }
 
-// ═══════════════════════════════════════
-//  UTILITIES
-// ═══════════════════════════════════════
-function badgeHtml(s) {
-  const map = { Approved:'badge-green', Pending:'badge-amber', Rejected:'badge-red' };
-  const dot = { Approved:'●', Pending:'◐', Rejected:'✕' };
-  return `<span class="badge ${map[s]||'badge-blue'}">${dot[s]||''} ${s}</span>`;
+/* ──────────────────────────────────────
+   UTILITIES
+────────────────────────────────────── */
+function badge(s){
+  const m={Approved:'b-green',Pending:'b-amber',Rejected:'b-red'};
+  const d={Approved:'● ',Pending:'◐ ',Rejected:'✕ '};
+  return `<span class="badge ${m[s]||'b-blue'}">${d[s]||''}${s}</span>`;
 }
-
-function statusColor(s) { return {Approved:'green',Pending:'amber',Rejected:'red'}[s]||'blue'; }
-
-function statusIcon(s) {
-  if (s==='Approved') return `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
-  if (s==='Rejected') return `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
-  return `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+function statusColor(s){return{Approved:'li-green',Pending:'li-amber',Rejected:'li-red'}[s]||'li-blue';}
+function statusSvg(s){
+  if(s==='Approved')return`<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
+  if(s==='Rejected')return`<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+  return`<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
 }
-
-function resTypeIcon(type) {
-  const icons = {
-    Lab:`<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v8m0 0H5m4 0h6m0 0V3m0 8h4M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8"/></svg>`,
-    Classroom:`<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>`,
-    'Seminar Hall':`<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
-    'Conference Room':`<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg>`,
+function resIcon(t){
+  const ic={
+    Lab:`<svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v8m0 0H5m4 0h6m0 0V3m0 8h4M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8"/></svg>`,
+    Classroom:`<svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>`,
+    'Seminar Hall':`<svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+    'Conference Room':`<svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg>`,
+    Library:`<svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
   };
-  return icons[type] || icons['Classroom'];
+  return ic[t]||ic['Classroom'];
+}
+function fmtDate(d){
+  if(!d)return'';
+  const[y,m,day]=d.split('-');
+  return`${parseInt(day)} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m-1]} ${y}`;
+}
+function statChip(cls,icon,val,lbl){
+  return`<div class="stat"><div class="stat-icon ${cls}">${icon}</div><div><div class="stat-val">${val}</div><div class="stat-lbl">${lbl}</div></div></div>`;
+}
+function empty(msg){return`<div class="empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg><p>${msg}</p></div>`;}
+function monitorSvg(){return`<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>`;}
+function checkSvg(){return`<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;}
+function clockSvg(){return`<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;}
+function xSvg(){return`<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;}
+
+function showErr(id,msg){const e=document.getElementById(id);if(e)e.innerHTML=`<div class="alert a-red">${msg}</div>`;}
+function clearErr(id){const e=document.getElementById(id);if(e)e.innerHTML='';}
+function showInline(id,type,msg){
+  const e=document.getElementById(id);if(!e)return;
+  const c={green:'a-green',red:'a-red',amber:'a-amber'}[type]||'a-red';
+  e.innerHTML=`<div class="alert ${c}">${msg}<span class="alert-x" onclick="clearEl('${id}')">✕</span></div>`;
+  setTimeout(()=>clearEl(id),9000);
+}
+function clearEl(id){const e=document.getElementById(id);if(e)e.innerHTML='';}
+
+let toastT;
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('on');
+  clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('on'),2800);
 }
 
-function fmtDate(d) {
-  if (!d) return '';
-  const [y,m,day] = d.split('-');
-  return `${day} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m-1]} ${y}`;
-}
-
-function setGreeting() {
-  const h = new Date().getHours();
-  const g = h<12 ? 'Good morning' : h<17 ? 'Good afternoon' : 'Good evening';
-  const el = document.getElementById('dash-greeting');
-  if (el) el.textContent = `${g} 👋`;
-}
-
-function showInlineAlert(id, type, msg) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const cls = {green:'alert-green',red:'alert-red',amber:'alert-amber'}[type]||'alert-red';
-  el.innerHTML = `<div class="alert ${cls}">${msg}<span class="alert-close" onclick="clearInlineAlert('${id}')">✕</span></div>`;
-  setTimeout(()=>clearInlineAlert(id), 8000);
-}
-function clearInlineAlert(id) { const e=document.getElementById(id); if(e) e.innerHTML=''; }
-
-let toastTimer;
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+function startClock(){
+  const tick=()=>{
+    const now=new Date();
+    const el=document.getElementById('hdr-clock');
+    if(el)el.textContent=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'  ·  '+now.toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'});
+  };
+  tick();setInterval(tick,10000);
 }
 
 // Enter key on login
-document.addEventListener('keydown', e => {
-  if (e.key==='Enter' && document.getElementById('login-screen').classList.contains('active')) doLogin();
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&document.getElementById('s-login').classList.contains('on'))doLogin();
 });
 </script>
 </body>
